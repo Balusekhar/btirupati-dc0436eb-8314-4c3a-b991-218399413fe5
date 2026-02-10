@@ -1,3 +1,4 @@
+@import '@primer/css/dist/primer.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
