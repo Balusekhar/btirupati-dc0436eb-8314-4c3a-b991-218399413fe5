@@ -9,7 +9,7 @@ export interface JwtPayload {
   sub: string;
   email: string;
   role: Role;
-  organizationId: string;
+  organizationId: string | null;
 }
 
 @Injectable()
@@ -29,7 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     id: string;
     email: string;
     role: Role;
-    organizationId: string;
+    organizationId: string | null;
   }> {
     const user = await this.authService.findById(payload.sub);
     if (!user) throw new UnauthorizedException();
@@ -37,7 +37,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       id: user.id,
       email: user.email,
       role: user.role as Role,
-      organizationId: user.organizationId,
+      organizationId: user.organizationId ?? null,
     };
   }
 }

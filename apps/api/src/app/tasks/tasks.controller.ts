@@ -4,8 +4,8 @@ import {
   Delete,
   Get,
   Param,
-  Patch,
   Post,
+  Put,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -40,7 +40,7 @@ export class TasksController {
     return this.tasks.create(dto, req.user!);
   }
 
-  @Patch(':id')
+  @Put(':id')
   @RequirePermission(Permission.TaskUpdate)
   async update(
     @Param('id') id: string,

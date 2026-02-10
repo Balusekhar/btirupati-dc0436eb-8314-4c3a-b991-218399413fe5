@@ -1,9 +1,13 @@
 import {
-  IsDateString,
+  IsIn,
   IsOptional,
   IsString,
   IsUUID,
 } from 'class-validator';
+import type { TaskStatus } from '../models.js';
+
+const TASK_STATUSES: TaskStatus[] = ['open', 'in_progress', 'completed', 'archived'];
+const TASK_CATEGORIES = ['work', 'personal'] as const;
 
 export class CreateTaskDto {
   @IsString()
@@ -13,11 +17,14 @@ export class CreateTaskDto {
   @IsOptional()
   description?: string;
 
-  @IsUUID()
-  @IsOptional()
-  assigneeId?: string;
+  @IsString()
+  @IsIn(TASK_STATUSES)
+  status!: TaskStatus;
 
-  @IsDateString()
-  @IsOptional()
-  dueAt?: string;
+  @IsString()
+  @IsIn(TASK_CATEGORIES)
+  category!: string;
+
+  @IsUUID()
+  organizationId!: string;
 }

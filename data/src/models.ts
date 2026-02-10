@@ -27,7 +27,6 @@ export interface Task {
   description?: string;
   status: TaskStatus;
   organizationId: string;
-  assigneeId?: string;
   createdAt: string;
   updatedAt: string;
   dueAt?: string;

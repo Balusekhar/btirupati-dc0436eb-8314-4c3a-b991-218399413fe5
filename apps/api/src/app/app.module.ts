@@ -4,12 +4,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard, PermissionsGuard, RolesGuard } from '@org/auth';
 import { join } from 'path';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { AuditModule } from './audit/audit.module';
 import { AuditLog, Organization, Task, User } from './entities';
 import { TasksModule } from './tasks/tasks.module';
-import { AuditModule } from './audit/audit.module';
+import { OrganisationsModule } from './organisations/organisations.module';
 
 const envPath = (() => {
   const root = join(process.cwd(), '.env.local');
@@ -41,10 +40,9 @@ const envPath = (() => {
     AuthModule,
     TasksModule,
     AuditModule,
+    OrganisationsModule,
   ],
-  controllers: [AppController],
   providers: [
-    AppService,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     PermissionsGuard,
     RolesGuard,

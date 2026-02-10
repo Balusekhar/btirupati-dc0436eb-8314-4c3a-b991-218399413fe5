@@ -14,7 +14,7 @@ export interface RequestUser {
   id: string;
   email: string;
   role: string;
-  organizationId: string;
+  organizationId: string | null;
 }
 
 @Injectable()
@@ -36,6 +36,7 @@ export class TasksService {
   }
 
   async findAll(user: RequestUser): Promise<Task[]> {
+    if (!user.organizationId) return [];
     const orgIds = await this.getAccessibleOrgIds(user.organizationId);
     return this.taskRepo.find({
       where: { organizationId: In(orgIds) },
@@ -45,6 +46,7 @@ export class TasksService {
   }
 
   async findOne(id: string, user: RequestUser): Promise<Task> {
+    if (!user.organizationId) throw new ForbiddenException('No organization assigned');
     const task = await this.taskRepo.findOne({
       where: { id },
       relations: ['organization'],
@@ -60,18 +62,23 @@ export class TasksService {
   }
 
   async create(dto: CreateTaskDto, user: RequestUser): Promise<Task> {
+    if (!user.organizationId) throw new ForbiddenException('No organization assigned. Create or join an organization first.');
+    const allowedOrgIds = await this.getAccessibleOrgIds(user.organizationId);
+    if (!allowedOrgIds.includes(dto.organizationId)) {
+      throw new ForbiddenException('You cannot create tasks in this organization.');
+    }
     const task = this.taskRepo.create({
       title: dto.title,
       description: dto.description ?? null,
-      status: 'open',
-      category: TaskCategory.Work,
-      organizationId: user.organizationId,
+      status: dto.status as Task['status'],
+      category: dto.category as TaskCategory,
+      organizationId: dto.organizationId,
       createdById: user.id,
     });
     const saved = await this.taskRepo.save(task);
     await this.audit.log(
       user.id,
-      user.organizationId,
+      dto.organizationId,
       'task:create',
       'task',
       saved.id,

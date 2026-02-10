@@ -6,7 +6,7 @@ import { AuditLog, Organization } from '../entities';
 
 export interface RequestUser {
   id: string;
-  organizationId: string;
+  organizationId: string | null;
 }
 
 @Injectable()
@@ -53,6 +53,7 @@ export class AuditService {
   }
 
   async findAll(user: RequestUser): Promise<AuditLog[]> {
+    if (!user.organizationId) return [];
     const orgIds = await this.getAccessibleOrgIds(user.organizationId);
     return this.auditRepo.find({
       where: { organizationId: In(orgIds) },

@@ -2,7 +2,6 @@ import {
   IsDateString,
   IsOptional,
   IsString,
-  IsUUID,
 } from 'class-validator';
 
 import type { TaskStatus } from '../models.js';
@@ -15,10 +14,6 @@ export class UpdateTaskDto {
   @IsString()
   @IsOptional()
   description?: string;
-
-  @IsUUID()
-  @IsOptional()
-  assigneeId?: string;
 
   @IsDateString()
   @IsOptional()

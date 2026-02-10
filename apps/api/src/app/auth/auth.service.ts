@@ -25,22 +25,21 @@ export class AuthService {
     return this.userRepo.findOne({ where: { id } });
   }
 
-  async signup(dto: SignupDto): Promise<{ access_token: string; user: { id: string; email: string; role: Role; organizationId: string } }> {
+  async signup(dto: SignupDto): Promise<{ access_token: string; user: { id: string; email: string; role: Role; organizationId: string | null } }> {
     const existing = await this.userRepo.findOne({ where: { email: dto.email } });
     if (existing) throw new ConflictException('Email already registered');
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
-    const role = dto.role ?? Role.Viewer;
+    let organizationId: string | null = null;
+    let role = dto.role;
 
-    let organizationId: string;
     if (dto.organizationId) {
       const org = await this.orgRepo.findOne({ where: { id: dto.organizationId } });
       if (!org) throw new ConflictException('Organization not found');
       organizationId = org.id;
+      role = role ?? Role.Viewer;
     } else {
-      const org = this.orgRepo.create({ name: 'Default', parentId: null });
-      const saved = await this.orgRepo.save(org);
-      organizationId = saved.id;
+      role = role ?? Role.Owner;
     }
 
     const user = this.userRepo.create({
@@ -82,7 +81,7 @@ export class AuthService {
   async login(user: User): Promise<{ access_token: string }> {
     await this.audit.log(
       user.id,
-      user.organizationId,
+      user.organizationId ?? null,
       'user:login',
       'user',
       user.id,
@@ -93,7 +92,7 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       role: user.role,
-      organizationId: user.organizationId,
+      organizationId: user.organizationId ?? null,
     };
     const secret = this.config.getOrThrow<string>('JWT_SECRET');
     const expiresIn = this.config.get<string>('JWT_EXPIRES_IN') ?? '7d';

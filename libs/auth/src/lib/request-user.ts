@@ -6,7 +6,7 @@ export interface RequestWithUser {
     id: string;
     email: string;
     role: Role;
-    organizationId: string;
+    organizationId: string | null;
     [k: string]: unknown;
   };
 }

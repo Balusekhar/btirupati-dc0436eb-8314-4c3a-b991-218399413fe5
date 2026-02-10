@@ -1,6 +1,6 @@
 /**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
+ * .env.local is loaded via ConfigModule in AppModule (envFilePath: [root, apps/api/../..]).
+ * Alternatively you can load dotenv before bootstrap (e.g. require('dotenv').config({ path: '.env.local' })).
  */
 
 import { Logger, ValidationPipe } from '@nestjs/common';

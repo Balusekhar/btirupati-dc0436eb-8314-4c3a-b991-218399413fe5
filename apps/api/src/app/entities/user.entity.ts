@@ -27,12 +27,12 @@ export class User {
   @Column({ type: 'varchar', length: 50 })
   role!: Role;
 
-  @Column({ name: 'organization_id', type: 'uuid' })
-  organizationId!: string;
+  @Column({ name: 'organization_id', type: 'uuid', nullable: true })
+  organizationId!: string | null;
 
-  @ManyToOne(() => Organization, (org) => org.users, { onDelete: 'RESTRICT' })
+  @ManyToOne(() => Organization, (org) => org.users, { onDelete: 'RESTRICT', nullable: true })
   @JoinColumn({ name: 'organization_id' })
-  organization!: Organization;
+  organization!: Organization | null;
 
   @OneToMany(() => Task, (task) => task.createdBy)
   tasksCreated!: Task[];
