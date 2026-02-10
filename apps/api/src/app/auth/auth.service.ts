@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -38,6 +38,11 @@ export class AuthService {
       if (!org) throw new ConflictException('Organization not found');
       organizationId = org.id;
       role = role ?? Role.Viewer;
+      if (role === Role.Admin && org.parentId == null) {
+        throw new BadRequestException(
+          'Admin must belong to a child organization (middle level). Root organizations cannot have the Admin role.',
+        );
+      }
     } else {
       role = role ?? Role.Owner;
     }
