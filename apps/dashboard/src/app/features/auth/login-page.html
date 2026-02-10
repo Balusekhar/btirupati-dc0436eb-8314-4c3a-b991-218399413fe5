@@ -1,0 +1,51 @@
+<div class="d-flex flex-justify-center">
+  <div class="Box p-4" style="max-width: 420px; width: 100%">
+    <h1 class="h3 mb-3">Sign in</h1>
+
+    @if (errorMessage()) {
+      <div class="flash flash-error mb-3" role="alert">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    <form class="d-flex flex-column gap-3" [formGroup]="form" (ngSubmit)="submit()">
+      <div>
+        <label class="form-label" for="email">Email</label>
+        <input
+          id="email"
+          class="form-control input-block"
+          type="email"
+          autocomplete="email"
+          formControlName="email"
+        />
+        @if (form.controls.email.touched && form.controls.email.invalid) {
+          <p class="text-small color-fg-danger mt-1">Enter a valid email.</p>
+        }
+      </div>
+
+      <div>
+        <label class="form-label" for="password">Password</label>
+        <input
+          id="password"
+          class="form-control input-block"
+          type="password"
+          autocomplete="current-password"
+          formControlName="password"
+        />
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <p class="text-small color-fg-danger mt-1">
+            Password must be at least 8 characters.
+          </p>
+        }
+      </div>
+
+      <button class="btn btn-primary" type="submit" [disabled]="isSubmitting()">
+        @if (isSubmitting()) {
+          Signing in…
+        } @else {
+          Sign in
+        }
+      </button>
+    </form>
+  </div>
+</div>

@@ -1,2 +1,12 @@
-<app-nx-welcome></app-nx-welcome>
-<router-outlet></router-outlet>
+<div class="min-h-screen">
+  <header class="border-b borderColor-muted px-4 py-3">
+    <div class="container-lg d-flex flex-items-center flex-justify-between">
+      <a class="h4 text-bold" routerLink="/tasks">Task Dashboard</a>
+      <a class="btn btn-sm" routerLink="/login">Login</a>
+    </div>
+  </header>
+
+  <main class="container-lg px-4 py-6">
+    <router-outlet></router-outlet>
+  </main>
+</div>
