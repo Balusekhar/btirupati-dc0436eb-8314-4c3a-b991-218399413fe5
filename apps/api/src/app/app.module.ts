@@ -1,15 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from '@org/auth';
 import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import {
-  AuditLog,
-  Organization,
-  Task,
-  User,
-} from './entities';
+import { AuthModule } from './auth/auth.module';
+import { AuditLog, Organization, Task, User } from './entities';
 
 const envPath = (() => {
   const root = join(process.cwd(), '.env.local');
@@ -38,9 +36,12 @@ const envPath = (() => {
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User, Organization, Task, AuditLog]),
+    AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+  ],
 })
 export class AppModule {}
