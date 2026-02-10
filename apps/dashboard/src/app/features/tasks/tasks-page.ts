@@ -9,9 +9,9 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { DragDropModule, type CdkDragDrop } from '@angular/cdk/drag-drop';
 import type { CreateTaskDto, TaskStatus, UpdateTaskDto } from '@org/data';
-import { TasksApi } from './tasks-api';
 import type { ApiTask, TaskCategory } from './task.types';
 import { TokenStorageService } from '../../core/auth/token-storage.service';
+import { TasksStore } from './tasks-store';
 
 type SortKey = 'createdAt' | 'title' | 'status' | 'dueAt';
 type SortDir = 'asc' | 'desc';
@@ -25,14 +25,13 @@ type ViewMode = 'list' | 'board';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TasksPage {
-  private readonly api = inject(TasksApi);
   private readonly fb = inject(FormBuilder);
   private readonly tokenStorage = inject(TokenStorageService);
+  private readonly store = inject(TasksStore);
 
-  readonly isLoading = signal(false);
-  readonly errorMessage = signal<string | null>(null);
-
-  readonly tasks = signal<ApiTask[]>([]);
+  readonly isLoading = this.store.isLoading;
+  readonly errorMessage = this.store.errorMessage;
+  readonly tasks = this.store.tasks;
 
   // UI state for filtering + sorting (client-side).
   readonly viewMode = signal<ViewMode>('list');
@@ -163,20 +162,11 @@ export class TasksPage {
     const orgId = this.tokenStorage.jwtPayload()?.organizationId;
     if (orgId) this.createForm.controls.organizationId.setValue(orgId);
 
-    void this.load();
+    void this.store.loadTasks();
   }
 
   async load(): Promise<void> {
-    this.errorMessage.set(null);
-    this.isLoading.set(true);
-    try {
-      const data = await this.api.list();
-      this.tasks.set(data);
-    } catch (e) {
-      this.errorMessage.set(e instanceof Error ? e.message : 'Failed to load tasks');
-    } finally {
-      this.isLoading.set(false);
-    }
+    await this.store.loadTasks();
   }
 
   setViewMode(mode: ViewMode): void {
@@ -205,39 +195,33 @@ export class TasksPage {
   }
 
   async submitCreate(): Promise<void> {
-    this.errorMessage.set(null);
     if (this.createForm.invalid) {
       this.createForm.markAllAsTouched();
       return;
     }
 
-    this.isLoading.set(true);
-    try {
-      const raw = this.createForm.getRawValue();
-      const dto: CreateTaskDto = {
-        title: raw.title,
-        description: raw.description || undefined,
-        status: raw.status,
-        category: raw.category,
-        organizationId: raw.organizationId,
-      };
-      const created = await this.api.create(dto);
-      this.tasks.update((t) => [created, ...t]);
-      this.closeCreate();
-      // Keep orgId in place; reset other fields.
-      const orgId = raw.organizationId;
-      this.createForm.reset({
-        title: '',
-        description: '',
-        status: 'open',
-        category: 'work',
-        organizationId: orgId,
-      });
-    } catch (e) {
-      this.errorMessage.set(e instanceof Error ? e.message : 'Failed to create task');
-    } finally {
-      this.isLoading.set(false);
-    }
+    const raw = this.createForm.getRawValue();
+    const dto: CreateTaskDto = {
+      title: raw.title,
+      description: raw.description || undefined,
+      status: raw.status,
+      category: raw.category,
+      organizationId: raw.organizationId,
+    };
+
+    const created = await this.store.createTask(dto);
+    if (!created) return;
+
+    this.closeCreate();
+    // Keep orgId in place; reset other fields.
+    const orgId = raw.organizationId;
+    this.createForm.reset({
+      title: '',
+      description: '',
+      status: 'open',
+      category: 'work',
+      organizationId: orgId,
+    });
   }
 
   startEdit(task: ApiTask): void {
@@ -256,29 +240,19 @@ export class TasksPage {
   }
 
   async submitEdit(task: ApiTask): Promise<void> {
-    this.errorMessage.set(null);
     if (!this.editingTaskId()) return;
 
-    this.isLoading.set(true);
-    try {
-      const raw = this.editForm.getRawValue();
-      const dto: UpdateTaskDto = {
-        ...(raw.title != null ? { title: raw.title } : {}),
-        ...(raw.description != null ? { description: raw.description } : {}),
-        ...(raw.dueAt != null && raw.dueAt !== '' ? { dueAt: raw.dueAt } : {}),
-        ...(raw.status != null ? { status: raw.status } : {}),
-      };
+    const raw = this.editForm.getRawValue();
+    const dto: UpdateTaskDto = {
+      ...(raw.title != null ? { title: raw.title } : {}),
+      ...(raw.description != null ? { description: raw.description } : {}),
+      ...(raw.dueAt != null && raw.dueAt !== '' ? { dueAt: raw.dueAt } : {}),
+      ...(raw.status != null ? { status: raw.status } : {}),
+    };
 
-      const updated = await this.api.update(task.id, dto);
-      this.tasks.update((list) =>
-        list.map((t) => (t.id === task.id ? updated : t)),
-      );
-      this.cancelEdit();
-    } catch (e) {
-      this.errorMessage.set(e instanceof Error ? e.message : 'Failed to update task');
-    } finally {
-      this.isLoading.set(false);
-    }
+    const updated = await this.store.updateTask(task.id, dto);
+    if (!updated) return;
+    this.cancelEdit();
   }
 
   async dropToStatus(
@@ -288,42 +262,13 @@ export class TasksPage {
     const task = event.item.data as ApiTask | undefined;
     if (!task) return;
     if (task.status === newStatus) return;
-
-    const prevStatus = task.status;
-    this.errorMessage.set(null);
-
-    // Optimistic update.
-    this.tasks.update((list) =>
-      list.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)),
-    );
-
-    try {
-      await this.api.update(task.id, { status: newStatus });
-    } catch (e) {
-      // Revert on failure.
-      this.tasks.update((list) =>
-        list.map((t) => (t.id === task.id ? { ...t, status: prevStatus } : t)),
-      );
-      this.errorMessage.set(
-        e instanceof Error ? e.message : 'Failed to update task status',
-      );
-    }
+    await this.store.updateTaskStatusOptimistic(task.id, newStatus);
   }
 
   async remove(task: ApiTask): Promise<void> {
-    this.errorMessage.set(null);
     const ok = confirm(`Delete task "${task.title}"?`);
     if (!ok) return;
-
-    this.isLoading.set(true);
-    try {
-      await this.api.remove(task.id);
-      this.tasks.update((list) => list.filter((t) => t.id !== task.id));
-    } catch (e) {
-      this.errorMessage.set(e instanceof Error ? e.message : 'Failed to delete task');
-    } finally {
-      this.isLoading.set(false);
-    }
+    await this.store.deleteTask(task.id);
   }
 
   truncate(text: string | null | undefined, max = 140): string {
