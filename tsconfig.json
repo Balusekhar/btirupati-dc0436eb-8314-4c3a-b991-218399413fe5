@@ -14,6 +14,9 @@
     },
     {
       "path": "./libs/auth"
+    },
+    {
+      "path": "./apps/dashboard-e2e"
     }
   ]
 }
