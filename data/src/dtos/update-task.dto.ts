@@ -1,10 +1,10 @@
 import {
   IsDateString,
+  IsEnum,
   IsOptional,
   IsString,
 } from 'class-validator';
-
-import type { TaskStatus } from '../models.js';
+import { TaskStatus } from '../enums.js';
 
 export class UpdateTaskDto {
   @IsString()
@@ -19,7 +19,7 @@ export class UpdateTaskDto {
   @IsOptional()
   dueAt?: string;
 
-  @IsString()
+  @IsEnum(TaskStatus)
   @IsOptional()
   status?: TaskStatus;
 }

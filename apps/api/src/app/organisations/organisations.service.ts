@@ -4,17 +4,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { RequestUser } from '@org/auth';
 import { Role } from '@org/data';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { Organization, User } from '../entities';
-
-export interface RequestUser {
-  id: string;
-  role: string;
-  organizationId: string | null;
-}
 
 @Injectable()
 export class OrganisationsService {

@@ -1,7 +1,9 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Permission } from '@org/data';
@@ -20,7 +22,14 @@ export class PermissionsGuard implements CanActivate {
     );
     if (!requiredPermission) return true;
     const { user } = context.switchToHttp().getRequest<RequestWithUser>();
-    if (!user?.role) return false;
-    return roleHasPermission(user.role, requiredPermission);
+    if (!user?.role) {
+      throw new UnauthorizedException('Authentication required');
+    }
+    if (!roleHasPermission(user.role, requiredPermission)) {
+      throw new ForbiddenException(
+        `Missing required permission: ${requiredPermission}`,
+      );
+    }
+    return true;
   }
 }

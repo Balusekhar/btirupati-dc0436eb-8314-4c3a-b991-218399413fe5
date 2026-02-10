@@ -1,13 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { getAccessibleOrgIds } from '@org/auth';
+import { getAccessibleOrgIds, RequestUser } from '@org/auth';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { AuditLog, Organization } from '../entities';
-
-export interface RequestUser {
-  id: string;
-  organizationId: string | null;
-}
 
 @Injectable()
 export class AuditService {

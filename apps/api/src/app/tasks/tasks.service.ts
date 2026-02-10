@@ -3,19 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { canAccessTaskOrg, getAccessibleOrgIds } from '@org/auth';
+import { canAccessTaskOrg, getAccessibleOrgIds, RequestUser } from '@org/auth';
 import { CreateTaskDto, UpdateTaskDto } from '@org/data';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
-import { Organization, Task, TaskCategory } from '../entities';
-
-export interface RequestUser {
-  id: string;
-  email: string;
-  role: string;
-  organizationId: string | null;
-}
+import { Organization, Task } from '../entities';
 
 @Injectable()
 export class TasksService {
@@ -70,8 +63,8 @@ export class TasksService {
     const task = this.taskRepo.create({
       title: dto.title,
       description: dto.description ?? null,
-      status: dto.status as Task['status'],
-      category: dto.category as TaskCategory,
+      status: dto.status,
+      category: dto.category,
       organizationId: dto.organizationId,
       createdById: user.id,
     });
@@ -95,7 +88,7 @@ export class TasksService {
     const task = await this.findOne(id, user);
     if (dto.title !== undefined) task.title = dto.title;
     if (dto.description !== undefined) task.description = dto.description;
-    if (dto.status !== undefined) task.status = dto.status as Task['status'];
+    if (dto.status !== undefined) task.status = dto.status;
     const saved = await this.taskRepo.save(task);
     await this.audit.log(
       user.id,

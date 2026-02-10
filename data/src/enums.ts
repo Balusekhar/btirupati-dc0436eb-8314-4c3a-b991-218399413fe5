@@ -12,3 +12,15 @@ export enum Permission {
   AuditRead = 'audit:read',
 }
 
+export enum TaskStatus {
+  Open = 'open',
+  InProgress = 'in_progress',
+  Completed = 'completed',
+  Archived = 'archived',
+}
+
+export enum TaskCategory {
+  Work = 'work',
+  Personal = 'personal',
+}
+

@@ -7,9 +7,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import type { TaskStatus } from '@org/data';
+import { TaskCategory, TaskStatus } from '@org/data';
 import { Organization } from './organization.entity';
-import { TaskCategory } from './task-category.enum';
 import { User } from './user.entity';
 
 @Entity('tasks')

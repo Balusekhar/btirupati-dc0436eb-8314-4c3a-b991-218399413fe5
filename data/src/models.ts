@@ -1,4 +1,4 @@
-import { Permission, Role } from './enums.js';
+import { Permission, Role, TaskCategory, TaskStatus } from './enums.js';
 
 export interface User {
   id: string;
@@ -19,13 +19,12 @@ export interface Organization {
   updatedAt: string;
 }
 
-export type TaskStatus = 'open' | 'in_progress' | 'completed' | 'archived';
-
 export interface Task {
   id: string;
   title: string;
   description?: string;
   status: TaskStatus;
+  category: TaskCategory;
   organizationId: string;
   createdAt: string;
   updatedAt: string;

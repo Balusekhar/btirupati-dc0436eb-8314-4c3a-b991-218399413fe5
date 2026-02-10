@@ -14,7 +14,6 @@ import { Spinner } from '../../shared/spinner';
   selector: 'app-login-page',
   imports: [ReactiveFormsModule, RouterModule, Spinner],
   templateUrl: './login-page.html',
-  styleUrl: './login-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginPage {

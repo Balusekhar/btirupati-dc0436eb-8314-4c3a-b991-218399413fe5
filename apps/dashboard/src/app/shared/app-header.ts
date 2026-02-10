@@ -7,7 +7,6 @@ import { TokenStorageService } from '../core/auth/token-storage.service';
   selector: 'app-app-header',
   imports: [RouterModule],
   templateUrl: './app-header.html',
-  styleUrl: './app-header.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppHeader {

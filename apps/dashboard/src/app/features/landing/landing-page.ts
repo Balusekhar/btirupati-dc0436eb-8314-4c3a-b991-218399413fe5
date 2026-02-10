@@ -6,7 +6,6 @@ import { TokenStorageService } from '../../core/auth/token-storage.service';
   selector: 'app-landing-page',
   imports: [RouterModule],
   templateUrl: './landing-page.html',
-  styleUrl: './landing-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandingPage {

@@ -18,7 +18,6 @@ import { Spinner } from '../../shared/spinner';
   selector: 'app-signup-page',
   imports: [ReactiveFormsModule, RouterModule, Spinner],
   templateUrl: './signup-page.html',
-  styleUrl: './signup-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SignupPage {

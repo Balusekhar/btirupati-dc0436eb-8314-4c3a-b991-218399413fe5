@@ -1,13 +1,10 @@
 import {
-  IsIn,
+  IsEnum,
   IsOptional,
   IsString,
   IsUUID,
 } from 'class-validator';
-import type { TaskStatus } from '../models.js';
-
-const TASK_STATUSES: TaskStatus[] = ['open', 'in_progress', 'completed', 'archived'];
-const TASK_CATEGORIES = ['work', 'personal'] as const;
+import { TaskCategory, TaskStatus } from '../enums.js';
 
 export class CreateTaskDto {
   @IsString()
@@ -17,13 +14,11 @@ export class CreateTaskDto {
   @IsOptional()
   description?: string;
 
-  @IsString()
-  @IsIn(TASK_STATUSES)
+  @IsEnum(TaskStatus)
   status!: TaskStatus;
 
-  @IsString()
-  @IsIn(TASK_CATEGORIES)
-  category!: string;
+  @IsEnum(TaskCategory)
+  category!: TaskCategory;
 
   @IsUUID()
   organizationId!: string;

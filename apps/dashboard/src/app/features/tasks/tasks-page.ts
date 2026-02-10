@@ -7,9 +7,12 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { DragDropModule, type CdkDragDrop } from '@angular/cdk/drag-drop';
-import type { CreateTaskDto, TaskStatus, UpdateTaskDto } from '@org/data';
-import type { ApiTask, TaskCategory } from './task.types';
+import {
+  CreateTaskDto,
+  TaskCategory,
+  TaskStatus,
+} from '@org/data';
+import type { ApiTask } from './task.types';
 import { TokenStorageService } from '../../core/auth/token-storage.service';
 import { TasksStore } from './tasks-store';
 import { Spinner } from '../../shared/spinner';
@@ -18,6 +21,8 @@ import {
   OrganizationsApi,
   type ApiOrganization,
 } from '../../core/organizations/organizations-api';
+import { TaskBoardView } from './task-board-view';
+import { TaskListView } from './task-list-view';
 
 type SortKey = 'createdAt' | 'title' | 'status' | 'dueAt';
 type SortDir = 'asc' | 'desc';
@@ -25,9 +30,15 @@ type ViewMode = 'list' | 'board';
 
 @Component({
   selector: 'app-tasks-page',
-  imports: [CommonModule, ReactiveFormsModule, DragDropModule, Spinner, DialogComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    Spinner,
+    DialogComponent,
+    TaskBoardView,
+    TaskListView,
+  ],
   templateUrl: './tasks-page.html',
-  styleUrl: './tasks-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TasksPage {
@@ -57,10 +68,9 @@ export class TasksPage {
   readonly createError = signal<string | null>(null);
   readonly isCreateSubmitting = signal(false);
 
-  // Edit-local state
-  readonly editingTaskId = signal<string | null>(null);
-  readonly editError = signal<string | null>(null);
-  readonly isEditSubmitting = signal(false);
+  // Delete confirmation dialog
+  readonly deleteTarget = signal<ApiTask | null>(null);
+  readonly isDeleteOpen = computed(() => this.deleteTarget() !== null);
 
   // UI state
   readonly viewMode = signal<ViewMode>('list');
@@ -70,12 +80,15 @@ export class TasksPage {
   readonly sortDir = signal<SortDir>('desc');
 
   readonly statusOptions: readonly TaskStatus[] = [
-    'open',
-    'in_progress',
-    'completed',
-    'archived',
+    TaskStatus.Open,
+    TaskStatus.InProgress,
+    TaskStatus.Completed,
+    TaskStatus.Archived,
   ];
-  readonly categoryOptions: readonly TaskCategory[] = ['work', 'personal'];
+  readonly categoryOptions: readonly TaskCategory[] = [
+    TaskCategory.Work,
+    TaskCategory.Personal,
+  ];
 
   readonly visibleTasks = computed(() => {
     const status = this.statusFilter();
@@ -90,10 +103,10 @@ export class TasksPage {
     });
 
     const statusOrder: Record<TaskStatus, number> = {
-      open: 0,
-      in_progress: 1,
-      completed: 2,
-      archived: 3,
+      [TaskStatus.Open]: 0,
+      [TaskStatus.InProgress]: 1,
+      [TaskStatus.Completed]: 2,
+      [TaskStatus.Archived]: 3,
     };
 
     const mult = dir === 'asc' ? 1 : -1;
@@ -122,10 +135,10 @@ export class TasksPage {
     });
 
     const statusOrder: Record<TaskStatus, number> = {
-      open: 0,
-      in_progress: 1,
-      completed: 2,
-      archived: 3,
+      [TaskStatus.Open]: 0,
+      [TaskStatus.InProgress]: 1,
+      [TaskStatus.Completed]: 2,
+      [TaskStatus.Archived]: 3,
     };
 
     const mult = dir === 'asc' ? 1 : -1;
@@ -144,26 +157,19 @@ export class TasksPage {
     });
 
     return {
-      open: sorted.filter((t) => t.status === 'open'),
-      in_progress: sorted.filter((t) => t.status === 'in_progress'),
-      completed: sorted.filter((t) => t.status === 'completed'),
-      archived: sorted.filter((t) => t.status === 'archived'),
+      [TaskStatus.Open]: sorted.filter((t) => t.status === TaskStatus.Open),
+      [TaskStatus.InProgress]: sorted.filter((t) => t.status === TaskStatus.InProgress),
+      [TaskStatus.Completed]: sorted.filter((t) => t.status === TaskStatus.Completed),
+      [TaskStatus.Archived]: sorted.filter((t) => t.status === TaskStatus.Archived),
     } satisfies Record<TaskStatus, ApiTask[]>;
   });
 
   readonly createForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.maxLength(500)]],
     description: [''],
-    status: ['open' as TaskStatus, [Validators.required]],
-    category: ['work' as TaskCategory, [Validators.required]],
+    status: [TaskStatus.Open as TaskStatus, [Validators.required]],
+    category: [TaskCategory.Work as TaskCategory, [Validators.required]],
     organizationId: ['', [Validators.required]],
-  });
-
-  readonly editForm = this.fb.group({
-    title: this.fb.control<string | null>(null),
-    description: this.fb.control<string | null>(null),
-    dueAt: this.fb.control<string | null>(null),
-    status: this.fb.control<TaskStatus | null>(null),
   });
 
   constructor() {
@@ -180,13 +186,10 @@ export class TasksPage {
     try {
       const orgs = await this.orgsApi.list();
       this.organizations.set(orgs);
-
-      // Auto-select the first org if available
       if (orgs.length > 0 && !this.createForm.controls.organizationId.value) {
         this.createForm.controls.organizationId.setValue(orgs[0].id);
       }
     } catch {
-      // Non-fatal — the dropdown will just be empty
       this.organizations.set([]);
     }
   }
@@ -213,9 +216,7 @@ export class TasksPage {
     this.isCreatingOrg.set(true);
     try {
       const created = await this.orgsApi.create({ name });
-      // Refresh the list
       await this.loadOrganizations();
-      // Auto-select the newly created org
       this.createForm.controls.organizationId.setValue(created.id);
       this.closeCreateOrg();
     } catch (e) {
@@ -249,7 +250,6 @@ export class TasksPage {
     this.viewMode.set(mode);
     if (mode === 'board') {
       this.statusFilter.set('all');
-      this.cancelEdit();
       this.closeCreate();
     }
   }
@@ -265,7 +265,6 @@ export class TasksPage {
 
   openCreate(): void {
     this.createError.set(null);
-    // Pre-select the user's org if they have one
     const jwtOrg = this.tokenStorage.jwtPayload()?.organizationId;
     if (jwtOrg) {
       this.createForm.controls.organizationId.setValue(jwtOrg);
@@ -285,8 +284,8 @@ export class TasksPage {
     this.createForm.reset({
       title: '',
       description: '',
-      status: 'open',
-      category: 'work',
+      status: TaskStatus.Open,
+      category: TaskCategory.Work,
       organizationId: orgId,
     });
   }
@@ -312,7 +311,6 @@ export class TasksPage {
       };
 
       const created = await this.store.createTask(dto);
-
       if (created) {
         this.resetCreateForm();
         this.isCreateOpen.set(false);
@@ -326,72 +324,19 @@ export class TasksPage {
     }
   }
 
-  // ── Edit ──
+  // ── Delete with accessible confirmation ──
 
-  startEdit(task: ApiTask): void {
-    this.editingTaskId.set(task.id);
-    this.editError.set(null);
-    this.editForm.reset({
-      title: task.title,
-      description: task.description ?? '',
-      dueAt: task.dueAt ?? null,
-      status: task.status,
-    });
+  confirmRemove(task: ApiTask): void {
+    this.deleteTarget.set(task);
   }
 
-  cancelEdit(): void {
-    this.editingTaskId.set(null);
-    this.editError.set(null);
-    this.editForm.reset();
+  cancelDelete(): void {
+    this.deleteTarget.set(null);
   }
 
-  async submitEdit(task: ApiTask): Promise<void> {
-    if (!this.editingTaskId()) return;
-
-    this.editError.set(null);
-    this.isEditSubmitting.set(true);
-
-    try {
-      const raw = this.editForm.getRawValue();
-      const dto: UpdateTaskDto = {
-        ...(raw.title != null ? { title: raw.title } : {}),
-        ...(raw.description != null ? { description: raw.description } : {}),
-        ...(raw.dueAt != null && raw.dueAt !== '' ? { dueAt: raw.dueAt } : {}),
-        ...(raw.status != null ? { status: raw.status } : {}),
-      };
-
-      const updated = await this.store.updateTask(task.id, dto);
-      if (updated) {
-        this.cancelEdit();
-      } else {
-        this.editError.set(this.store.errorMessage() ?? 'Failed to save changes.');
-      }
-    } catch (e) {
-      this.editError.set(e instanceof Error ? e.message : 'Failed to save changes.');
-    } finally {
-      this.isEditSubmitting.set(false);
-    }
-  }
-
-  // ── Drag & drop ──
-
-  async dropToStatus(event: CdkDragDrop<ApiTask[]>, newStatus: TaskStatus): Promise<void> {
-    const task = event.item.data as ApiTask | undefined;
-    if (!task || task.status === newStatus) return;
-
-    try {
-      await this.store.updateTaskStatusOptimistic(task.id, newStatus);
-      const storeErr = this.store.errorMessage();
-      if (storeErr) this.pageError.set(storeErr);
-    } catch (e) {
-      this.pageError.set(e instanceof Error ? e.message : 'Failed to move task.');
-    }
-  }
-
-  // ── Delete ──
-
-  async remove(task: ApiTask): Promise<void> {
-    if (!confirm(`Delete task "${task.title}"?`)) return;
+  async performDelete(): Promise<void> {
+    const task = this.deleteTarget();
+    if (!task) return;
 
     this.pageError.set(null);
     try {
@@ -401,7 +346,15 @@ export class TasksPage {
       }
     } catch (e) {
       this.pageError.set(e instanceof Error ? e.message : 'Failed to delete task.');
+    } finally {
+      this.deleteTarget.set(null);
     }
+  }
+
+  // ── Board error handler ──
+
+  onBoardError(message: string): void {
+    this.pageError.set(message);
   }
 
   truncate(text: string | null | undefined, max = 140): string {

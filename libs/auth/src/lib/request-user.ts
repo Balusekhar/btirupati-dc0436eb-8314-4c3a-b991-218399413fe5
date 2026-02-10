@@ -1,12 +1,14 @@
 import { Role } from '@org/data';
 
-/** Request user shape attached by JWT strategy (used by guards and handlers). */
+/** Canonical user shape attached to requests by the JWT strategy. */
+export interface RequestUser {
+  id: string;
+  email: string;
+  role: Role;
+  organizationId: string | null;
+}
+
+/** Express request augmented with the authenticated user. */
 export interface RequestWithUser {
-  user?: {
-    id: string;
-    email: string;
-    role: Role;
-    organizationId: string | null;
-    [k: string]: unknown;
-  };
+  user?: RequestUser & { [k: string]: unknown };
 }
