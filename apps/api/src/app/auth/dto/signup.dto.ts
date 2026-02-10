@@ -21,8 +21,7 @@ export class SignupDto {
   name?: string;
 
   @IsUUID()
-  @IsOptional()
-  organizationId?: string;
+  organizationId!: string;
 
   @IsEnum(Role)
   @IsOptional()

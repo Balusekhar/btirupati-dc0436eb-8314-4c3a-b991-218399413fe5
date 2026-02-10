@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from '@org/data';
 import * as bcrypt from 'bcrypt';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { Organization, User } from '../entities';
 import { SignupDto } from './dto/signup.dto';
@@ -30,22 +30,18 @@ export class AuthService {
     if (existing) throw new ConflictException('Email already registered');
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
-    let organizationId: string | null = null;
-    let role = dto.role;
+    const role = dto.role ?? Role.Viewer;
 
-    if (dto.organizationId) {
-      const org = await this.orgRepo.findOne({ where: { id: dto.organizationId } });
-      if (!org) throw new ConflictException('Organization not found');
-      organizationId = org.id;
-      role = role ?? Role.Viewer;
-      if (role === Role.Admin && org.parentId == null) {
-        throw new BadRequestException(
-          'Admin must belong to a child organization (middle level). Root organizations cannot have the Admin role.',
-        );
-      }
-    } else {
-      role = role ?? Role.Owner;
+    const org = await this.orgRepo.findOne({ where: { id: dto.organizationId } });
+    if (!org) throw new BadRequestException('Organization not found');
+
+    if (role === Role.Admin && org.parentId == null) {
+      throw new BadRequestException(
+        'Admin must belong to a child organization. Select a sub-organization instead.',
+      );
     }
+
+    const organizationId = org.id;
 
     const user = this.userRepo.create({
       email: dto.email,
@@ -74,6 +70,28 @@ export class AuthService {
         organizationId: saved.organizationId,
       },
     };
+  }
+
+  /**
+   * Returns organisations available for signup based on the selected role.
+   * - Owner: all organisations
+   * - Admin / Viewer: only child organisations (parentId IS NOT NULL)
+   */
+  async getOrganisationsForSignup(
+    role?: string,
+  ): Promise<Pick<Organization, 'id' | 'name' | 'parentId'>[]> {
+    const where =
+      role === Role.Admin || role === Role.Viewer
+        ? { parentId: Not(IsNull()) }
+        : {};
+
+    const orgs = await this.orgRepo.find({
+      where,
+      order: { name: 'ASC' },
+      select: ['id', 'name', 'parentId'],
+    });
+
+    return orgs;
   }
 
   async validateUser(email: string, password: string): Promise<User | null> {

@@ -5,19 +5,15 @@
     "types": [],
     "baseUrl": ".",
     "paths": {
-      "@org/data": [
-        "../../data/src/index.ts"
-      ],
-      "@org/data/*": [
-        "../../data/src/*"
-      ]
+      "@org/data": ["../../data/src/index.ts"],
+      "@org/data/*": ["../../data/src/*"]
     }
   },
-  "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "src/**/*.spec.ts",
-    "src/**/*.test.ts"
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts"],
+  "references": [
+    {
+      "path": "../../data/tsconfig.lib.json"
+    }
   ]
 }

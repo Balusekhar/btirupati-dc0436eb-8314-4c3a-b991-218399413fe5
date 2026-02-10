@@ -7,8 +7,19 @@
 
     <nav class="d-flex flex-items-center gap-2">
       @if (isAuthenticated()) {
-        <a class="btn btn-sm" routerLink="/tasks">Dashboard</a>
-        <button class="btn btn-sm" type="button" (click)="logout()">Logout</button>
+        <a
+          class="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 font-medium no-underline transition hover:bg-gray-50"
+          routerLink="/tasks"
+        >
+          Dashboard
+        </a>
+        <button
+          class="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 font-medium transition hover:bg-gray-50"
+          type="button"
+          (click)="logout()"
+        >
+          Logout
+        </button>
       } @else {
         <a class="btn-brand-sm" routerLink="/login/signup">Get Started</a>
       }

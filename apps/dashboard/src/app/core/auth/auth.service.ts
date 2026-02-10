@@ -14,8 +14,14 @@ export type SignupRequest = {
   email: string;
   password: string;
   name?: string;
-  organizationId?: string;
+  organizationId: string;
   role?: Role;
+};
+
+export type SignupOrganization = {
+  id: string;
+  name: string;
+  parentId: string | null;
 };
 
 @Injectable({ providedIn: 'root' })
@@ -40,6 +46,13 @@ export class AuthService {
       throw new Error('Signup failed: missing access token');
     }
     this.tokenStorage.setAccessToken(res.access_token);
+  }
+
+  /** Fetch organisations available for signup, filtered by the selected role. */
+  async getOrganisationsForSignup(role: string): Promise<SignupOrganization[]> {
+    return this.api.get<SignupOrganization[]>(
+      `/auth/signup/organisations?role=${encodeURIComponent(role)}`,
+    );
   }
 
   logout(): void {

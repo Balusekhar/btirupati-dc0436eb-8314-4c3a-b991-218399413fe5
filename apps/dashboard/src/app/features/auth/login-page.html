@@ -10,42 +10,57 @@
 
     <form class="d-flex flex-column gap-3" [formGroup]="form" (ngSubmit)="submit()">
       <div>
-        <label class="form-label" for="email">Email</label>
+        <label class="form-label" for="login-email">Email</label>
         <input
-          id="email"
+          id="login-email"
           class="form-control input-block"
           type="email"
           autocomplete="email"
+          placeholder="you@example.com"
           formControlName="email"
+          [class.border-red-500]="form.controls.email.touched && form.controls.email.invalid"
         />
         @if (form.controls.email.touched && form.controls.email.invalid) {
-          <p class="text-small color-fg-danger mt-1">Enter a valid email.</p>
+          <p class="text-small color-fg-danger mt-1">
+            @if (form.controls.email.hasError('required')) {
+              Email is required.
+            } @else {
+              Enter a valid email address.
+            }
+          </p>
         }
       </div>
 
       <div>
-        <label class="form-label" for="password">Password</label>
+        <label class="form-label" for="login-password">Password</label>
         <input
-          id="password"
+          id="login-password"
           class="form-control input-block"
           type="password"
           autocomplete="current-password"
+          placeholder="Minimum 8 characters"
           formControlName="password"
+          [class.border-red-500]="form.controls.password.touched && form.controls.password.invalid"
         />
         @if (form.controls.password.touched && form.controls.password.invalid) {
           <p class="text-small color-fg-danger mt-1">
-            Password must be at least 8 characters.
+            @if (form.controls.password.hasError('required')) {
+              Password is required.
+            } @else {
+              Password must be at least 8 characters.
+            }
           </p>
         }
       </div>
 
       <button
-        class="w-full rounded-md bg-brand py-2 text-white font-semibold transition hover:bg-brand-dark disabled:opacity-60"
+        class="w-full rounded-md bg-brand py-2.5 text-white font-semibold transition hover:bg-brand-dark disabled:opacity-60 d-flex flex-items-center flex-justify-center gap-2"
         type="submit"
         [disabled]="isSubmitting()"
       >
         @if (isSubmitting()) {
-          Signing in…
+          <app-spinner size="sm" />
+          <span>Signing in…</span>
         } @else {
           Sign in
         }

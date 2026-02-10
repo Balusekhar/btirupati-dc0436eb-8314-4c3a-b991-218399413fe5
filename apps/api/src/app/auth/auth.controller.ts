@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
+  Query,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Public } from '@org/auth';
@@ -14,6 +16,13 @@ import { SignupDto } from './dto/signup.dto';
 @Controller('auth')
 export class AuthController {
   constructor(private auth: AuthService) {}
+
+  /** Public endpoint: list organisations available for signup, filtered by role. */
+  @Public()
+  @Get('signup/organisations')
+  async getOrganisationsForSignup(@Query('role') role?: string) {
+    return this.auth.getOrganisationsForSignup(role);
+  }
 
   @Public()
   @Post('signup')

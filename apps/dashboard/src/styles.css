@@ -21,6 +21,16 @@
   box-shadow: 0 0 0 3px theme('colors.brand.DEFAULT' / 15%);
 }
 
+/* Invalid field styling — red border */
+.form-control.border-red-500,
+.form-select.border-red-500 {
+  border-color: #cf222e !important;
+}
+.form-control.border-red-500:focus,
+.form-select.border-red-500:focus {
+  box-shadow: 0 0 0 3px rgba(207, 34, 46, 0.15);
+}
+
 /* ── Brand CTA button (reusable) ── */
 @layer components {
   .btn-brand {

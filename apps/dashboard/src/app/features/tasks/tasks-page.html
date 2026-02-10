@@ -1,53 +1,69 @@
 <div class="max-w-7xl mx-auto px-4 py-6">
-<div class="d-flex flex-items-start flex-justify-between gap-3 mb-4">
+
+<!-- ── Page header ── -->
+<div class="d-flex flex-column flex-md-row flex-items-start flex-md-items-center flex-justify-between gap-3 mb-5">
   <div>
-    <h1 class="h2 mb-1">Tasks</h1>
-    <p class="color-fg-muted m-0">
-      Create, edit, and delete tasks. You can also drag tasks between status columns.
+    <h1 class="text-2xl font-bold tracking-tight">Tasks</h1>
+    <p class="text-sm text-gray-500 mt-1 mb-0">
+      Manage your tasks. Create, edit, filter, and drag between status columns.
     </p>
   </div>
 
-  <div class="d-flex flex-items-center gap-2">
-    <div class="BtnGroup">
+  <div class="d-flex flex-items-center gap-2 flex-shrink-0">
+    <div class="inline-flex rounded-lg border border-gray-200 overflow-hidden">
       <button
-        class="btn btn-sm"
+        class="px-3 py-1.5 text-sm font-medium transition"
         type="button"
-        [class.btn-primary]="viewMode() === 'list'"
+        [class]="viewMode() === 'list' ? 'bg-brand text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
         (click)="setViewMode('list')"
       >
         List
       </button>
       <button
-        class="btn btn-sm"
+        class="px-3 py-1.5 text-sm font-medium transition border-l border-gray-200"
         type="button"
-        [class.btn-primary]="viewMode() === 'board'"
+        [class]="viewMode() === 'board' ? 'bg-brand text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
         (click)="setViewMode('board')"
       >
         Board
       </button>
     </div>
 
-    <button class="btn btn-primary" type="button" (click)="openCreate()">
-      New task
+    <button
+      class="rounded-md bg-brand px-4 py-1.5 text-sm text-white font-semibold transition hover:bg-brand-dark"
+      type="button"
+      (click)="openCreate()"
+    >
+      + New task
     </button>
-    <button class="btn" type="button" (click)="load()" [disabled]="isLoading()">
+
+    <button
+      class="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 font-medium transition hover:bg-gray-50 d-flex flex-items-center gap-1 disabled:opacity-50"
+      type="button"
+      (click)="load()"
+      [disabled]="isLoading()"
+    >
+      @if (isLoading()) {
+        <app-spinner size="sm" />
+      }
       Refresh
     </button>
   </div>
 </div>
 
-<div class="Box p-3 mb-4">
-  <div class="d-flex flex-column flex-md-row gap-3 flex-items-start">
+<!-- ── Filters toolbar ── -->
+<div class="rounded-lg border border-gray-200 bg-gray-50/50 p-3 mb-4">
+  <div class="d-flex flex-column flex-md-row gap-3 flex-items-end">
     @if (viewMode() === 'list') {
       <div class="flex-1">
-        <label class="form-label" for="filterStatus">Status</label>
+        <label class="block text-xs font-medium text-gray-500 mb-1" for="filterStatus">Status</label>
         <select
           id="filterStatus"
           class="form-select input-block"
           [value]="statusFilter()"
           (change)="statusFilter.set(($any($event.target).value))"
         >
-          <option value="all">All</option>
+          <option value="all">All statuses</option>
           @for (s of statusOptions; track s) {
             <option [value]="s">{{ s }}</option>
           }
@@ -56,14 +72,14 @@
     }
 
     <div class="flex-1">
-      <label class="form-label" for="filterCategory">Category</label>
+      <label class="block text-xs font-medium text-gray-500 mb-1" for="filterCategory">Category</label>
       <select
         id="filterCategory"
         class="form-select input-block"
         [value]="categoryFilter()"
         (change)="categoryFilter.set(($any($event.target).value))"
       >
-        <option value="all">All</option>
+        <option value="all">All categories</option>
         @for (c of categoryOptions; track c) {
           <option [value]="c">{{ c }}</option>
         }
@@ -71,7 +87,7 @@
     </div>
 
     <div class="flex-1">
-      <label class="form-label" for="sortKey">Sort by</label>
+      <label class="block text-xs font-medium text-gray-500 mb-1" for="sortKey">Sort by</label>
       <select
         id="sortKey"
         class="form-select input-block"
@@ -86,89 +102,127 @@
     </div>
 
     <div class="flex-1">
-      <label class="form-label" for="sortDir">Order</label>
+      <label class="block text-xs font-medium text-gray-500 mb-1" for="sortDir">Order</label>
       <select
         id="sortDir"
         class="form-select input-block"
         [value]="sortDir()"
         (change)="sortDir.set(($any($event.target).value))"
       >
-        <option value="desc">Desc</option>
-        <option value="asc">Asc</option>
+        <option value="desc">Newest first</option>
+        <option value="asc">Oldest first</option>
       </select>
     </div>
 
-    <div class="d-flex flex-items-end gap-2">
-      <button class="btn" type="button" (click)="resetFiltersAndSort()">
-        Reset
-      </button>
-    </div>
+    <button
+      class="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600 font-medium transition hover:bg-gray-50 flex-shrink-0"
+      type="button"
+      (click)="resetFiltersAndSort()"
+    >
+      Reset
+    </button>
   </div>
 
-  <p class="text-small color-fg-muted mt-2 mb-0">
+  <p class="text-xs text-gray-400 mt-2 mb-0">
     @if (viewMode() === 'list') {
       Showing {{ visibleTasks().length }} of {{ tasks().length }} tasks
     } @else {
       Board shows {{ boardColumns().open.length + boardColumns().in_progress.length + boardColumns().completed.length + boardColumns().archived.length }}
-      tasks (category filter applied).
+      tasks (category filter applied)
     }
   </p>
 </div>
 
-@if (errorMessage()) {
-  <div class="flash flash-error mb-3" role="alert">
-    {{ errorMessage() }}
+<!-- ── No organization banner ── -->
+@if (!hasOrganization() && !isLoading()) {
+  <div class="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 mb-4 d-flex flex-column flex-md-row flex-items-start flex-md-items-center flex-justify-between gap-3" role="status">
+    <div class="d-flex flex-items-center gap-2">
+      <svg class="text-yellow-500 flex-shrink-0" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M8.22 1.754a.25.25 0 00-.44 0L1.698 13.132a.25.25 0 00.22.368h12.164a.25.25 0 00.22-.368L8.22 1.754zm-1.763-.707c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0114.082 15H1.918a1.75 1.75 0 01-1.543-2.575L6.457 1.047zM9 11a1 1 0 11-2 0 1 1 0 012 0zm-.25-5.25a.75.75 0 00-1.5 0v2.5a.75.75 0 001.5 0v-2.5z"/>
+      </svg>
+      <p class="text-sm text-yellow-800 m-0">
+        <strong>No organization assigned.</strong> Create an organization to start managing tasks.
+      </p>
+    </div>
+    <button
+      class="rounded-md bg-brand px-4 py-1.5 text-sm text-white font-semibold transition hover:bg-brand-dark flex-shrink-0"
+      type="button"
+      (click)="openCreateOrg()"
+    >
+      Create organization
+    </button>
   </div>
 }
 
-@if (isCreateOpen()) {
-  <div class="Box p-4 mb-4">
-    <div class="d-flex flex-items-center flex-justify-between mb-3">
-      <h2 class="h4 m-0">Create task</h2>
-      <button class="btn btn-sm" type="button" (click)="closeCreate()">Close</button>
+<!-- ── Page-level error banner (dismissible) ── -->
+@if (pageError()) {
+  <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 mb-4 d-flex flex-items-center flex-justify-between gap-3" role="alert">
+    <div class="d-flex flex-items-center gap-2">
+      <svg class="text-red-500 flex-shrink-0" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8zm9-3a1 1 0 10-2 0v4a1 1 0 002 0V5zm-.25 6.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
+      </svg>
+      <p class="text-sm text-red-700 m-0">{{ pageError() }}</p>
     </div>
+    <button
+      class="rounded-md p-1 text-red-400 transition hover:text-red-600 hover:bg-red-100 flex-shrink-0"
+      type="button"
+      (click)="dismissPageError()"
+      aria-label="Dismiss"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+}
 
-    <form class="d-flex flex-column gap-3" [formGroup]="createForm" (ngSubmit)="submitCreate()">
-      <div class="d-flex flex-column flex-md-row gap-3">
-        <div class="flex-1">
-          <label class="form-label" for="title">Title</label>
-          <input id="title" class="form-control input-block" type="text" formControlName="title" />
-          @if (createForm.controls.title.touched && createForm.controls.title.invalid) {
-            <p class="text-small color-fg-danger mt-1">Title is required.</p>
-          }
-        </div>
-        <div class="flex-1">
-          <label class="form-label" for="organizationId">Organization ID</label>
-          <input
-            id="organizationId"
-            class="form-control input-block"
-            type="text"
-            placeholder="UUID"
-            formControlName="organizationId"
-          />
-          @if (createForm.controls.organizationId.touched && createForm.controls.organizationId.invalid) {
-            <p class="text-small color-fg-danger mt-1">Organization ID is required.</p>
-          }
-        </div>
+<!-- ── Create task dialog ── -->
+<app-dialog [open]="isCreateOpen()" (closed)="closeCreate()">
+  <span dialog-title>Create new task</span>
+
+  <div dialog-body>
+    @if (createError()) {
+      <div class="rounded-md border border-red-200 bg-red-50 px-3 py-2 mb-3 d-flex flex-items-center gap-2" role="alert">
+        <svg class="text-red-500 flex-shrink-0" width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8zm9-3a1 1 0 10-2 0v4a1 1 0 002 0V5zm-.25 6.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
+        </svg>
+        <p class="text-sm text-red-700 m-0">{{ createError() }}</p>
+      </div>
+    }
+
+    <form class="d-flex flex-column gap-3" [formGroup]="createForm" id="createTaskForm" (ngSubmit)="submitCreate()">
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1" for="create-title">Title</label>
+        <input
+          id="create-title"
+          class="form-control input-block"
+          type="text"
+          placeholder="What needs to be done?"
+          formControlName="title"
+          [class.border-red-500]="createForm.controls.title.touched && createForm.controls.title.invalid"
+        />
+        @if (createForm.controls.title.touched && createForm.controls.title.invalid) {
+          <p class="text-xs text-red-600 mt-1">Title is required.</p>
+        }
       </div>
 
       <div>
-        <label class="form-label" for="description">Description (optional)</label>
-        <textarea id="description" class="form-control input-block" rows="3" formControlName="description"></textarea>
+        <label class="block text-xs font-medium text-gray-500 mb-1" for="create-description">Description (optional)</label>
+        <textarea id="create-description" class="form-control input-block" rows="2" placeholder="Add details…" formControlName="description"></textarea>
       </div>
 
       <div class="d-flex flex-column flex-md-row gap-3">
         <div class="flex-1">
-          <label class="form-label" for="status">Status</label>
-          <select id="status" class="form-select input-block" formControlName="status">
+          <label class="block text-xs font-medium text-gray-500 mb-1" for="create-status">Status</label>
+          <select id="create-status" class="form-select input-block" formControlName="status">
             @for (s of statusOptions; track s) {
               <option [value]="s">{{ s }}</option>
             }
           </select>
         </div>
         <div class="flex-1">
-          <label class="form-label" for="category">Category</label>
-          <select id="category" class="form-select input-block" formControlName="category">
+          <label class="block text-xs font-medium text-gray-500 mb-1" for="create-category">Category</label>
+          <select id="create-category" class="form-select input-block" formControlName="category">
             @for (c of categoryOptions; track c) {
               <option [value]="c">{{ c }}</option>
             }
@@ -176,30 +230,136 @@
         </div>
       </div>
 
-      <div class="d-flex flex-items-center gap-2">
-        <button class="btn btn-primary" type="submit" [disabled]="isLoading()">Create</button>
-        <button class="btn" type="button" (click)="closeCreate()">Cancel</button>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1" for="create-orgId">Organization</label>
+        @if (organizations().length > 0) {
+          <select
+            id="create-orgId"
+            class="form-select input-block"
+            formControlName="organizationId"
+            [class.border-red-500]="createForm.controls.organizationId.touched && createForm.controls.organizationId.invalid"
+          >
+            @for (org of organizations(); track org.id) {
+              <option [value]="org.id">{{ org.name }}</option>
+            }
+          </select>
+        } @else {
+          <div class="rounded-md border border-yellow-200 bg-yellow-50 px-3 py-2.5 d-flex flex-items-center flex-justify-between gap-2">
+            <p class="text-xs text-yellow-700 m-0">No organization found. Create or join one first.</p>
+            <button
+              class="rounded-md bg-brand px-3 py-1 text-xs text-white font-semibold transition hover:bg-brand-dark flex-shrink-0"
+              type="button"
+              (click)="openCreateOrg()"
+            >
+              Create
+            </button>
+          </div>
+        }
+        @if (createForm.controls.organizationId.touched && createForm.controls.organizationId.invalid) {
+          <p class="text-xs text-red-600 mt-1">An organization is required to create a task.</p>
+        }
       </div>
     </form>
   </div>
-}
 
-@if (isLoading()) {
-  <div class="Box p-4">
-    <p class="m-0">Loading…</p>
+  <ng-container dialog-footer>
+    <button
+      class="rounded-md border border-gray-200 bg-white px-4 py-1.5 text-sm text-gray-600 font-medium transition hover:bg-gray-50"
+      type="button"
+      (click)="closeCreate()"
+    >
+      Cancel
+    </button>
+    <button
+      class="rounded-md bg-brand px-4 py-1.5 text-sm text-white font-semibold transition hover:bg-brand-dark disabled:opacity-50 d-flex flex-items-center gap-1"
+      type="submit"
+      form="createTaskForm"
+      [disabled]="isCreateSubmitting()"
+    >
+      @if (isCreateSubmitting()) {
+        <app-spinner size="sm" />
+      }
+      Create task
+    </button>
+  </ng-container>
+</app-dialog>
+
+<!-- ── Create organization dialog ── -->
+<app-dialog [open]="isCreateOrgOpen()" (closed)="closeCreateOrg()">
+  <span dialog-title>Create organization</span>
+
+  <div dialog-body>
+    @if (createOrgError()) {
+      <div class="rounded-md border border-red-200 bg-red-50 px-3 py-2 mb-3 d-flex flex-items-center gap-2" role="alert">
+        <svg class="text-red-500 flex-shrink-0" width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8zm9-3a1 1 0 10-2 0v4a1 1 0 002 0V5zm-.25 6.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
+        </svg>
+        <p class="text-sm text-red-700 m-0">{{ createOrgError() }}</p>
+      </div>
+    }
+
+    <p class="text-sm text-gray-500 mb-3">
+      Give your organization a name. You'll be set as the owner and can start creating tasks immediately.
+    </p>
+
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1" for="org-name">Organization name</label>
+      <input
+        id="org-name"
+        class="form-control input-block"
+        type="text"
+        placeholder="e.g. My Company"
+        [value]="newOrgName()"
+        (input)="newOrgName.set($any($event.target).value)"
+        (keydown.enter)="submitCreateOrg()"
+      />
+    </div>
+  </div>
+
+  <ng-container dialog-footer>
+    <button
+      class="rounded-md border border-gray-200 bg-white px-4 py-1.5 text-sm text-gray-600 font-medium transition hover:bg-gray-50"
+      type="button"
+      (click)="closeCreateOrg()"
+    >
+      Cancel
+    </button>
+    <button
+      class="rounded-md bg-brand px-4 py-1.5 text-sm text-white font-semibold transition hover:bg-brand-dark disabled:opacity-50 d-flex flex-items-center gap-1"
+      type="button"
+      (click)="submitCreateOrg()"
+      [disabled]="isCreatingOrg()"
+    >
+      @if (isCreatingOrg()) {
+        <app-spinner size="sm" />
+      }
+      Create organization
+    </button>
+  </ng-container>
+</app-dialog>
+
+<!-- ── Loading state ── -->
+@if (isLoading() && tasks().length === 0) {
+  <div class="rounded-lg border border-gray-200 bg-white p-12 d-flex flex-column flex-items-center flex-justify-center gap-3">
+    <app-spinner size="lg" />
+    <span class="text-sm text-gray-400">Loading tasks…</span>
   </div>
 } @else {
+
+  <!-- ── Board view ── -->
   @if (viewMode() === 'board') {
-    <p class="text-small color-fg-muted mb-3">
-      Drag cards between columns to update status. For full edit/delete forms, switch to List view.
+    <p class="text-xs text-gray-400 mb-3">
+      Drag cards between columns to change status. Switch to List for full edit/delete.
     </p>
 
     <div cdkDropListGroup class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
       @for (s of statusOptions; track s) {
-        <div class="Box p-3">
+        <div class="rounded-lg border border-gray-200 bg-gray-50/50 p-3">
           <div class="d-flex flex-items-center flex-justify-between mb-2">
-            <h3 class="h4 m-0">{{ s }}</h3>
-            <span class="Label Label--secondary">{{ boardColumns()[s].length }}</span>
+            <h3 class="text-sm font-semibold text-gray-700 m-0 capitalize">{{ s }}</h3>
+            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-200 text-xs font-medium text-gray-600">
+              {{ boardColumns()[s].length }}
+            </span>
           </div>
 
           <div
@@ -209,71 +369,126 @@
             (cdkDropListDropped)="dropToStatus($event, s)"
           >
             @for (task of boardColumns()[s]; track task.id) {
-              <div class="Box p-3" cdkDrag [cdkDragData]="task">
+              <div
+                class="rounded-md border border-gray-200 bg-white p-3 shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md transition"
+                cdkDrag
+                [cdkDragData]="task"
+              >
                 <div class="d-flex flex-items-center flex-justify-between gap-2">
-                  <strong class="text-small">{{ task.title }}</strong>
-                  <span class="Label Label--accent">{{ task.category }}</span>
+                  <strong class="text-sm text-gray-800">{{ task.title }}</strong>
+                  <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium"
+                    [class]="task.category === 'work' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'"
+                  >
+                    {{ task.category }}
+                  </span>
                 </div>
                 @if (task.description) {
-                  <p class="text-small color-fg-muted mt-1 mb-0">
+                  <p class="text-xs text-gray-500 mt-1 mb-0 leading-relaxed">
                     {{ truncate(task.description, 80) }}
                   </p>
                 }
+              </div>
+            }
+
+            @if (boardColumns()[s].length === 0) {
+              <div class="rounded-md border border-dashed border-gray-300 p-4 text-center">
+                <p class="text-xs text-gray-400 m-0">Drop here</p>
               </div>
             }
           </div>
         </div>
       }
     </div>
+
+  <!-- ── List view ── -->
   } @else {
     @if (visibleTasks().length === 0) {
-      <div class="Box p-4">
-        <p class="m-0">No matching tasks. Adjust filters or create one to get started.</p>
+      <div class="rounded-lg border border-gray-200 bg-white p-12 text-center">
+        <div class="text-4xl mb-3">&#128203;</div>
+        <h3 class="text-base font-semibold text-gray-700 mb-1">No tasks yet</h3>
+        <p class="text-sm text-gray-400 mb-4 max-w-xs mx-auto">
+          Get started by creating your first task, or adjust your filters.
+        </p>
+        <button
+          class="rounded-md bg-brand px-4 py-2 text-sm text-white font-semibold transition hover:bg-brand-dark"
+          type="button"
+          (click)="openCreate()"
+        >
+          + Create your first task
+        </button>
       </div>
     } @else {
       <div class="d-flex flex-column gap-3">
         @for (task of visibleTasks(); track task.id) {
-          <div class="Box p-4">
+          <div class="rounded-lg border border-gray-200 bg-white p-4 hover:shadow-sm transition">
             <div class="d-flex flex-items-start flex-justify-between gap-3">
               <div class="flex-1">
                 <div class="d-flex flex-items-center gap-2 flex-wrap">
-                  <h3 class="h4 m-0">{{ task.title }}</h3>
-                  <span class="Label Label--secondary">{{ task.status }}</span>
-                  <span class="Label Label--accent">{{ task.category }}</span>
+                  <h3 class="text-base font-semibold text-gray-800 m-0">{{ task.title }}</h3>
+                  <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600">
+                    {{ task.status }}
+                  </span>
+                  <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium"
+                    [class]="task.category === 'work' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'"
+                  >
+                    {{ task.category }}
+                  </span>
                   @if (task.dueAt) {
-                    <span class="color-fg-muted text-small">Due {{ task.dueAt }}</span>
+                    <span class="text-xs text-gray-400">Due {{ task.dueAt }}</span>
                   }
                 </div>
 
                 @if (task.description) {
-                  <p class="mt-2 mb-0 color-fg-muted">
+                  <p class="mt-1.5 mb-0 text-sm text-gray-500 leading-relaxed">
                     {{ truncate(task.description) }}
                   </p>
                 }
               </div>
 
-              <div class="d-flex flex-items-center gap-2">
+              <div class="d-flex flex-items-center gap-1.5 flex-shrink-0">
                 @if (editingTaskId() === task.id) {
-                  <button class="btn btn-sm" type="button" (click)="cancelEdit()">
+                  <button
+                    class="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs text-gray-600 font-medium transition hover:bg-gray-50"
+                    type="button"
+                    (click)="cancelEdit()"
+                  >
                     Cancel
                   </button>
                 } @else {
-                  <button class="btn btn-sm" type="button" (click)="startEdit(task)">
+                  <button
+                    class="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs text-gray-600 font-medium transition hover:bg-gray-50"
+                    type="button"
+                    (click)="startEdit(task)"
+                  >
                     Edit
                   </button>
-                  <button class="btn btn-sm btn-danger" type="button" (click)="remove(task)">
+                  <button
+                    class="rounded-md border border-red-200 bg-white px-2.5 py-1 text-xs text-red-600 font-medium transition hover:bg-red-50"
+                    type="button"
+                    (click)="remove(task)"
+                  >
                     Delete
                   </button>
                 }
               </div>
             </div>
 
+            <!-- Edit form -->
             @if (editingTaskId() === task.id) {
-              <div class="mt-3">
+              <div class="mt-3 pt-3 border-t border-gray-100">
+                @if (editError()) {
+                  <div class="rounded-md border border-red-200 bg-red-50 px-3 py-2 mb-3 d-flex flex-items-center gap-2" role="alert">
+                    <svg class="text-red-500 flex-shrink-0" width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8zm9-3a1 1 0 10-2 0v4a1 1 0 002 0V5zm-.25 6.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
+                    </svg>
+                    <p class="text-sm text-red-700 m-0">{{ editError() }}</p>
+                  </div>
+                }
+
                 <form class="d-flex flex-column gap-3" [formGroup]="editForm" (ngSubmit)="submitEdit(task)">
                   <div class="d-flex flex-column flex-md-row gap-3">
                     <div class="flex-1">
-                      <label class="form-label" for="editTitle-{{ task.id }}">Title</label>
+                      <label class="block text-xs font-medium text-gray-500 mb-1" for="editTitle-{{ task.id }}">Title</label>
                       <input
                         id="editTitle-{{ task.id }}"
                         class="form-control input-block"
@@ -282,7 +497,7 @@
                       />
                     </div>
                     <div class="flex-1">
-                      <label class="form-label" for="editStatus-{{ task.id }}">Status</label>
+                      <label class="block text-xs font-medium text-gray-500 mb-1" for="editStatus-{{ task.id }}">Status</label>
                       <select
                         id="editStatus-{{ task.id }}"
                         class="form-select input-block"
@@ -296,18 +511,18 @@
                   </div>
 
                   <div>
-                    <label class="form-label" for="editDesc-{{ task.id }}">Description</label>
+                    <label class="block text-xs font-medium text-gray-500 mb-1" for="editDesc-{{ task.id }}">Description</label>
                     <textarea
                       id="editDesc-{{ task.id }}"
                       class="form-control input-block"
-                      rows="3"
+                      rows="2"
                       formControlName="description"
                     ></textarea>
                   </div>
 
                   <div class="d-flex flex-column flex-md-row gap-3">
                     <div class="flex-1">
-                      <label class="form-label" for="editDueAt-{{ task.id }}">Due at (optional)</label>
+                      <label class="block text-xs font-medium text-gray-500 mb-1" for="editDueAt-{{ task.id }}">Due at (optional)</label>
                       <input
                         id="editDueAt-{{ task.id }}"
                         class="form-control input-block"
@@ -318,10 +533,23 @@
                   </div>
 
                   <div class="d-flex flex-items-center gap-2">
-                    <button class="btn btn-primary btn-sm" type="submit" [disabled]="isLoading()">
-                      Save
+                    <button
+                      class="rounded-md bg-brand px-4 py-1.5 text-sm text-white font-semibold transition hover:bg-brand-dark disabled:opacity-50 d-flex flex-items-center gap-1"
+                      type="submit"
+                      [disabled]="isEditSubmitting()"
+                    >
+                      @if (isEditSubmitting()) {
+                        <app-spinner size="sm" />
+                      }
+                      Save changes
                     </button>
-                    <button class="btn btn-sm" type="button" (click)="cancelEdit()">Cancel</button>
+                    <button
+                      class="rounded-md border border-gray-200 bg-white px-4 py-1.5 text-sm text-gray-600 font-medium transition hover:bg-gray-50"
+                      type="button"
+                      (click)="cancelEdit()"
+                    >
+                      Cancel
+                    </button>
                   </div>
                 </form>
               </div>

@@ -2,9 +2,8 @@
   <div class="Box p-4" style="max-width: 520px; width: 100%">
     <h1 class="h3 mb-3">Create account</h1>
 
-    <p class="color-fg-muted">
-      Optional: provide an Organization ID to join an existing org. If omitted, you'll be created as an
-      Owner with no org.
+    <p class="color-fg-muted text-small mb-3">
+      Select your role and organization to get started.
     </p>
 
     @if (errorMessage()) {
@@ -15,69 +14,119 @@
 
     <form class="d-flex flex-column gap-3" [formGroup]="form" (ngSubmit)="submit()">
       <div>
-        <label class="form-label" for="email">Email</label>
+        <label class="form-label" for="signup-email">Email</label>
         <input
-          id="email"
+          id="signup-email"
           class="form-control input-block"
           type="email"
           autocomplete="email"
+          placeholder="you@example.com"
           formControlName="email"
+          [class.border-red-500]="form.controls.email.touched && form.controls.email.invalid"
         />
         @if (form.controls.email.touched && form.controls.email.invalid) {
-          <p class="text-small color-fg-danger mt-1">Enter a valid email.</p>
-        }
-      </div>
-
-      <div>
-        <label class="form-label" for="password">Password</label>
-        <input
-          id="password"
-          class="form-control input-block"
-          type="password"
-          autocomplete="new-password"
-          formControlName="password"
-        />
-        @if (form.controls.password.touched && form.controls.password.invalid) {
           <p class="text-small color-fg-danger mt-1">
-            Password must be at least 8 characters.
+            @if (form.controls.email.hasError('required')) {
+              Email is required.
+            } @else {
+              Enter a valid email address.
+            }
           </p>
         }
       </div>
 
       <div>
-        <label class="form-label" for="organizationId">Organization ID (optional)</label>
+        <label class="form-label" for="signup-password">Password</label>
         <input
-          id="organizationId"
+          id="signup-password"
           class="form-control input-block"
-          type="text"
-          placeholder="UUID"
-          formControlName="organizationId"
+          type="password"
+          autocomplete="new-password"
+          placeholder="Minimum 8 characters"
+          formControlName="password"
+          [class.border-red-500]="form.controls.password.touched && form.controls.password.invalid"
         />
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <p class="text-small color-fg-danger mt-1">
+            @if (form.controls.password.hasError('required')) {
+              Password is required.
+            } @else {
+              Password must be at least 8 characters.
+            }
+          </p>
+        }
       </div>
 
       <div>
-        <label class="form-label" for="role">Role</label>
-        <select id="role" class="form-select input-block" formControlName="role">
+        <label class="form-label" for="signup-role">Role</label>
+        <select
+          id="signup-role"
+          class="form-select input-block"
+          formControlName="role"
+          (change)="onRoleChange($any($event.target).value)"
+        >
           @for (r of roles; track r) {
             <option [value]="r">{{ r }}</option>
           }
         </select>
+        <p class="text-small color-fg-muted mt-1">
+          @if (form.controls.role.value === 'owner') {
+            Owner — full access to the organization and its sub-organizations.
+          } @else if (form.controls.role.value === 'admin') {
+            Admin — manage tasks within a sub-organization.
+          } @else {
+            Viewer — read-only access to tasks.
+          }
+        </p>
+      </div>
+
+      <div>
+        <label class="form-label" for="signup-org">Organization</label>
+        @if (isLoadingOrgs()) {
+          <div class="d-flex flex-items-center gap-2 py-2">
+            <app-spinner size="sm" />
+            <span class="text-small color-fg-muted">Loading organizations…</span>
+          </div>
+        } @else if (organizations().length === 0) {
+          <div class="rounded-md border border-yellow-200 bg-yellow-50 px-3 py-2.5">
+            <p class="text-small text-yellow-700 m-0">
+              No organizations available for the selected role.
+            </p>
+          </div>
+        } @else {
+          <select
+            id="signup-org"
+            class="form-select input-block"
+            formControlName="organizationId"
+            [class.border-red-500]="form.controls.organizationId.touched && form.controls.organizationId.invalid"
+          >
+            @for (org of organizations(); track org.id) {
+              <option [value]="org.id">{{ org.name }}</option>
+            }
+          </select>
+          @if (form.controls.organizationId.touched && form.controls.organizationId.invalid) {
+            <p class="text-small color-fg-danger mt-1">
+              Please select an organization.
+            </p>
+          }
+        }
       </div>
 
       <button
-        class="w-full rounded-md bg-brand py-2 text-white font-semibold transition hover:bg-brand-dark disabled:opacity-60"
+        class="w-full rounded-md bg-brand py-2.5 text-white font-semibold transition hover:bg-brand-dark disabled:opacity-60 d-flex flex-items-center flex-justify-center gap-2"
         type="submit"
-        [disabled]="isSubmitting()"
+        [disabled]="isSubmitting() || organizations().length === 0"
       >
         @if (isSubmitting()) {
-          Creating…
+          <app-spinner size="sm" />
+          <span>Creating account…</span>
         } @else {
           Create account
         }
       </button>
     </form>
 
-    <p class="mt-3 mb-0">
+    <p class="mt-3 mb-0 text-small">
       Already have an account?
       <a class="font-semibold text-brand hover:text-brand-dark" routerLink="/login">Sign in</a>
     </p>
