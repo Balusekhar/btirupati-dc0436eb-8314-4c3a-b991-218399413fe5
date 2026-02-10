@@ -12,6 +12,9 @@ export class AuditLog {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
+  @Column({ name: 'organization_id', type: 'uuid', nullable: true })
+  organizationId!: string | null;
+
   @Column({ name: 'user_id', type: 'uuid', nullable: true })
   userId!: string | null;
 
