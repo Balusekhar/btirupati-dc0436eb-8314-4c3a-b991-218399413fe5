@@ -1,10 +1,19 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import type { CreateTaskDto, TaskStatus, UpdateTaskDto } from '@org/data';
 import { TasksApi } from './tasks-api';
 import type { ApiTask, TaskCategory } from './task.types';
 import { TokenStorageService } from '../../core/auth/token-storage.service';
+
+type SortKey = 'createdAt' | 'title' | 'status' | 'dueAt';
+type SortDir = 'asc' | 'desc';
 
 @Component({
   selector: 'app-tasks-page',
@@ -23,6 +32,12 @@ export class TasksPage {
 
   readonly tasks = signal<ApiTask[]>([]);
 
+  // UI state for filtering + sorting (client-side).
+  readonly statusFilter = signal<TaskStatus | 'all'>('all');
+  readonly categoryFilter = signal<TaskCategory | 'all'>('all');
+  readonly sortKey = signal<SortKey>('createdAt');
+  readonly sortDir = signal<SortDir>('desc');
+
   readonly isCreateOpen = signal(false);
   readonly editingTaskId = signal<string | null>(null);
 
@@ -33,6 +48,48 @@ export class TasksPage {
     'archived',
   ];
   readonly categoryOptions: readonly TaskCategory[] = ['work', 'personal'];
+
+  readonly visibleTasks = computed(() => {
+    const status = this.statusFilter();
+    const category = this.categoryFilter();
+    const key = this.sortKey();
+    const dir = this.sortDir();
+
+    const filtered = this.tasks().filter((t) => {
+      if (status !== 'all' && t.status !== status) return false;
+      if (category !== 'all' && t.category !== category) return false;
+      return true;
+    });
+
+    const statusOrder: Record<TaskStatus, number> = {
+      open: 0,
+      in_progress: 1,
+      completed: 2,
+      archived: 3,
+    };
+
+    const mult = dir === 'asc' ? 1 : -1;
+    const sorted = [...filtered].sort((a, b) => {
+      if (key === 'title') {
+        return mult * a.title.localeCompare(b.title);
+      }
+      if (key === 'status') {
+        return mult * (statusOrder[a.status] - statusOrder[b.status]);
+      }
+      if (key === 'dueAt') {
+        const aMs = a.dueAt ? Date.parse(a.dueAt) : Number.POSITIVE_INFINITY;
+        const bMs = b.dueAt ? Date.parse(b.dueAt) : Number.POSITIVE_INFINITY;
+        return mult * (aMs - bMs);
+      }
+
+      // createdAt
+      const aMs = Date.parse(a.createdAt);
+      const bMs = Date.parse(b.createdAt);
+      return mult * (aMs - bMs);
+    });
+
+    return sorted;
+  });
 
   readonly createForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.maxLength(500)]],
@@ -68,6 +125,13 @@ export class TasksPage {
     } finally {
       this.isLoading.set(false);
     }
+  }
+
+  resetFiltersAndSort(): void {
+    this.statusFilter.set('all');
+    this.categoryFilter.set('all');
+    this.sortKey.set('createdAt');
+    this.sortDir.set('desc');
   }
 
   openCreate(): void {
