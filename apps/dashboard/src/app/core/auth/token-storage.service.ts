@@ -1,4 +1,5 @@
 import { Injectable, computed, signal } from '@angular/core';
+import { decodeJwtPayload } from './jwt-payload';
 
 const STORAGE_KEY = 'auth.access_token';
 
@@ -9,6 +10,10 @@ export class TokenStorageService {
   );
 
   readonly isAuthenticated = computed(() => Boolean(this.accessToken()));
+  readonly jwtPayload = computed(() => {
+    const token = this.accessToken();
+    return token ? decodeJwtPayload(token) : null;
+  });
 
   getAccessToken(): string | null {
     return this.accessToken();
