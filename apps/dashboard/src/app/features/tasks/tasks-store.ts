@@ -1,5 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import type { CreateTaskDto, TaskStatus, UpdateTaskDto } from '@org/data';
+import type { CreateTaskDto, UpdateTaskDto } from '@org/data';
 import type { ApiTask } from './task.types';
 import { TasksApi } from './tasks-api';
 
@@ -89,27 +89,4 @@ export class TasksStore {
     }
   }
 
-  async updateTaskStatusOptimistic(id: string, status: TaskStatus): Promise<void> {
-    const current = this._tasks().find((t) => t.id === id);
-    if (!current) return;
-    if (current.status === status) return;
-
-    const prevStatus = current.status;
-    this._errorMessage.set(null);
-
-    this._tasks.update((list) =>
-      list.map((t) => (t.id === id ? { ...t, status } : t)),
-    );
-
-    try {
-      await this.api.update(id, { status });
-    } catch (e) {
-      this._tasks.update((list) =>
-        list.map((t) => (t.id === id ? { ...t, status: prevStatus } : t)),
-      );
-      this._errorMessage.set(
-        e instanceof Error ? e.message : 'Failed to update task status',
-      );
-    }
-  }
 }

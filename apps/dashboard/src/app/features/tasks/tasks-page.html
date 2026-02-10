@@ -5,30 +5,11 @@
   <div>
     <h1 class="text-2xl font-bold tracking-tight">Tasks</h1>
     <p class="text-sm text-gray-500 mt-1 mb-0">
-      Manage your tasks. Create, edit, filter, and drag between status columns.
+      Manage your tasks. Create, edit, and filter.
     </p>
   </div>
 
   <div class="d-flex flex-items-center gap-2 flex-shrink-0">
-    <div class="inline-flex rounded-lg border border-gray-200 overflow-hidden">
-      <button
-        class="px-3 py-1.5 text-sm font-medium transition"
-        type="button"
-        [class]="viewMode() === 'list' ? 'bg-brand text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
-        (click)="setViewMode('list')"
-      >
-        List
-      </button>
-      <button
-        class="px-3 py-1.5 text-sm font-medium transition border-l border-gray-200"
-        type="button"
-        [class]="viewMode() === 'board' ? 'bg-brand text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
-        (click)="setViewMode('board')"
-      >
-        Board
-      </button>
-    </div>
-
     <button
       class="rounded-md bg-brand px-4 py-1.5 text-sm text-white font-semibold transition hover:bg-brand-dark"
       type="button"
@@ -54,22 +35,20 @@
 <!-- ── Filters toolbar ── -->
 <div class="rounded-lg border border-gray-200 bg-gray-50/50 p-3 mb-4">
   <div class="d-flex flex-column flex-md-row gap-3 flex-items-end">
-    @if (viewMode() === 'list') {
-      <div class="flex-1">
-        <label class="block text-xs font-medium text-gray-500 mb-1" for="filterStatus">Status</label>
-        <select
-          id="filterStatus"
-          class="form-select input-block"
-          [value]="statusFilter()"
-          (change)="statusFilter.set(($any($event.target).value))"
-        >
-          <option value="all">All statuses</option>
-          @for (s of statusOptions; track s) {
-            <option [value]="s">{{ s }}</option>
-          }
-        </select>
-      </div>
-    }
+    <div class="flex-1">
+      <label class="block text-xs font-medium text-gray-500 mb-1" for="filterStatus">Status</label>
+      <select
+        id="filterStatus"
+        class="form-select input-block"
+        [value]="statusFilter()"
+        (change)="statusFilter.set(($any($event.target).value))"
+      >
+        <option value="all">All statuses</option>
+        @for (s of statusOptions; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+    </div>
 
     <div class="flex-1">
       <label class="block text-xs font-medium text-gray-500 mb-1" for="filterCategory">Category</label>
@@ -124,12 +103,7 @@
   </div>
 
   <p class="text-xs text-gray-400 mt-2 mb-0">
-    @if (viewMode() === 'list') {
-      Showing {{ visibleTasks().length }} of {{ tasks().length }} tasks
-    } @else {
-      Board shows {{ boardColumns()[statusOptions[0]].length + boardColumns()[statusOptions[1]].length + boardColumns()[statusOptions[2]].length + boardColumns()[statusOptions[3]].length }}
-      tasks (category filter applied)
-    }
+    Showing {{ visibleTasks().length }} of {{ tasks().length }} tasks
   </p>
 </div>
 
@@ -375,22 +349,11 @@
   </div>
 } @else {
 
-  <!-- ── Board view ── -->
-  @if (viewMode() === 'board') {
-    <app-task-board-view
-      [columns]="boardColumns()"
-      [statusOptions]="statusOptions"
-      (error)="onBoardError($event)"
-    />
-
-  <!-- ── List view ── -->
-  } @else {
-    <app-task-list-view
-      [tasks]="visibleTasks()"
-      [statusOptions]="statusOptions"
-      (removeTask)="confirmRemove($event)"
-      (requestCreate)="openCreate()"
-    />
-  }
+  <app-task-list-view
+    [tasks]="visibleTasks()"
+    [statusOptions]="statusOptions"
+    (removeTask)="confirmRemove($event)"
+    (requestCreate)="openCreate()"
+  />
 }
 </div>

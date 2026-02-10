@@ -21,12 +21,10 @@ import {
   OrganizationsApi,
   type ApiOrganization,
 } from '../../core/organizations/organizations-api';
-import { TaskBoardView } from './task-board-view';
 import { TaskListView } from './task-list-view';
 
 type SortKey = 'createdAt' | 'title' | 'status' | 'dueAt';
 type SortDir = 'asc' | 'desc';
-type ViewMode = 'list' | 'board';
 
 @Component({
   selector: 'app-tasks-page',
@@ -35,7 +33,6 @@ type ViewMode = 'list' | 'board';
     ReactiveFormsModule,
     Spinner,
     DialogComponent,
-    TaskBoardView,
     TaskListView,
   ],
   templateUrl: './tasks-page.html',
@@ -73,7 +70,6 @@ export class TasksPage {
   readonly isDeleteOpen = computed(() => this.deleteTarget() !== null);
 
   // UI state
-  readonly viewMode = signal<ViewMode>('list');
   readonly statusFilter = signal<TaskStatus | 'all'>('all');
   readonly categoryFilter = signal<TaskCategory | 'all'>('all');
   readonly sortKey = signal<SortKey>('createdAt');
@@ -122,46 +118,6 @@ export class TasksPage {
     });
 
     return sorted;
-  });
-
-  readonly boardColumns = computed(() => {
-    const category = this.categoryFilter();
-    const key = this.sortKey();
-    const dir = this.sortDir();
-
-    const base = this.tasks().filter((t) => {
-      if (category !== 'all' && t.category !== category) return false;
-      return true;
-    });
-
-    const statusOrder: Record<TaskStatus, number> = {
-      [TaskStatus.Open]: 0,
-      [TaskStatus.InProgress]: 1,
-      [TaskStatus.Completed]: 2,
-      [TaskStatus.Archived]: 3,
-    };
-
-    const mult = dir === 'asc' ? 1 : -1;
-    const effectiveKey: SortKey = key === 'status' ? 'createdAt' : key;
-    const sorted = [...base].sort((a, b) => {
-      if (effectiveKey === 'title') return mult * a.title.localeCompare(b.title);
-      if (effectiveKey === 'dueAt') {
-        const aMs = a.dueAt ? Date.parse(a.dueAt) : Number.POSITIVE_INFINITY;
-        const bMs = b.dueAt ? Date.parse(b.dueAt) : Number.POSITIVE_INFINITY;
-        return mult * (aMs - bMs);
-      }
-      const t = mult * (Date.parse(a.createdAt) - Date.parse(b.createdAt));
-      if (t !== 0) return t;
-      const s = statusOrder[a.status] - statusOrder[b.status];
-      return s !== 0 ? s : a.title.localeCompare(b.title);
-    });
-
-    return {
-      [TaskStatus.Open]: sorted.filter((t) => t.status === TaskStatus.Open),
-      [TaskStatus.InProgress]: sorted.filter((t) => t.status === TaskStatus.InProgress),
-      [TaskStatus.Completed]: sorted.filter((t) => t.status === TaskStatus.Completed),
-      [TaskStatus.Archived]: sorted.filter((t) => t.status === TaskStatus.Archived),
-    } satisfies Record<TaskStatus, ApiTask[]>;
   });
 
   readonly createForm = this.fb.nonNullable.group({
@@ -244,15 +200,7 @@ export class TasksPage {
     this.store.clearError();
   }
 
-  // ── View / Filter ──
-
-  setViewMode(mode: ViewMode): void {
-    this.viewMode.set(mode);
-    if (mode === 'board') {
-      this.statusFilter.set('all');
-      this.closeCreate();
-    }
-  }
+  // ── Filter ──
 
   resetFiltersAndSort(): void {
     this.statusFilter.set('all');
@@ -349,12 +297,6 @@ export class TasksPage {
     } finally {
       this.deleteTarget.set(null);
     }
-  }
-
-  // ── Board error handler ──
-
-  onBoardError(message: string): void {
-    this.pageError.set(message);
   }
 
   truncate(text: string | null | undefined, max = 140): string {

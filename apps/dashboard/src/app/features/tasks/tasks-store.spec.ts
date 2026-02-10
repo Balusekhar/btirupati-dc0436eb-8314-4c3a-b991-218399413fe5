@@ -165,55 +165,6 @@ describe('TasksStore', () => {
     });
   });
 
-  describe('updateTaskStatusOptimistic', () => {
-    it('should optimistically update the task status', async () => {
-      mockApi.list.mockResolvedValue([sampleTask]);
-      await store.loadTasks();
-
-      mockApi.update.mockResolvedValue({
-        ...sampleTask,
-        status: TaskStatus.InProgress,
-      });
-
-      await store.updateTaskStatusOptimistic('task-1', TaskStatus.InProgress);
-
-      expect(store.tasks()[0].status).toBe(TaskStatus.InProgress);
-    });
-
-    it('should revert status on API failure', async () => {
-      mockApi.list.mockResolvedValue([sampleTask]);
-      await store.loadTasks();
-
-      mockApi.update.mockRejectedValue(new Error('API error'));
-
-      await store.updateTaskStatusOptimistic('task-1', TaskStatus.InProgress);
-
-      expect(store.tasks()[0].status).toBe(TaskStatus.Open);
-      expect(store.errorMessage()).toBe('API error');
-    });
-
-    it('should do nothing if task not found', async () => {
-      mockApi.list.mockResolvedValue([sampleTask]);
-      await store.loadTasks();
-
-      await store.updateTaskStatusOptimistic(
-        'nonexistent',
-        TaskStatus.InProgress,
-      );
-
-      expect(mockApi.update).not.toHaveBeenCalled();
-    });
-
-    it('should do nothing if status is the same', async () => {
-      mockApi.list.mockResolvedValue([sampleTask]);
-      await store.loadTasks();
-
-      await store.updateTaskStatusOptimistic('task-1', TaskStatus.Open);
-
-      expect(mockApi.update).not.toHaveBeenCalled();
-    });
-  });
-
   describe('taskCount', () => {
     it('should reflect the number of tasks', async () => {
       expect(store.taskCount()).toBe(0);

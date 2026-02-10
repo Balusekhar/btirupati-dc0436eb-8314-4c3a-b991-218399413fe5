@@ -95,23 +95,6 @@ describe('TasksPage', () => {
     expect(mockOrgsApi.list).toHaveBeenCalled();
   });
 
-  describe('view mode', () => {
-    it('should default to list view', () => {
-      expect(component.viewMode()).toBe('list');
-    });
-
-    it('should switch to board view', () => {
-      component.setViewMode('board');
-      expect(component.viewMode()).toBe('board');
-    });
-
-    it('should reset status filter when switching to board view', () => {
-      component.statusFilter.set(TaskStatus.Open);
-      component.setViewMode('board');
-      expect(component.statusFilter()).toBe('all');
-    });
-  });
-
   describe('filters and sorting', () => {
     it('should default to showing all tasks', () => {
       expect(component.statusFilter()).toBe('all');
