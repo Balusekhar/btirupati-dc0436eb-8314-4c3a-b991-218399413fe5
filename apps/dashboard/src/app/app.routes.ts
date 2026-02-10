@@ -1,7 +1,11 @@
 import { Route } from '@angular/router';
 
 export const appRoutes: Route[] = [
-  { path: '', pathMatch: 'full', redirectTo: 'tasks' },
+  {
+    path: '',
+    loadComponent: () =>
+      import('./features/landing/landing-page').then((m) => m.LandingPage),
+  },
   {
     path: 'login',
     loadChildren: () =>
@@ -16,5 +20,5 @@ export const appRoutes: Route[] = [
     loadChildren: () =>
       import('./features/tasks/tasks.routes').then((m) => m.TASKS_ROUTES),
   },
-  { path: '**', redirectTo: 'tasks' },
+  { path: '**', redirectTo: '' },
 ];
