@@ -18,6 +18,32 @@ export class AuditService {
     private orgRepo: Repository<Organization>,
   ) {}
 
+  /**
+   * Persist an audit entry. Optionally console.log in development.
+   */
+  async log(
+    userId: string | null,
+    organizationId: string | null,
+    action: string,
+    resource: string,
+    resourceId?: string,
+    details?: Record<string, unknown>,
+  ): Promise<AuditLog> {
+    const entry = this.auditRepo.create({
+      userId,
+      organizationId,
+      action,
+      resource,
+      resourceId: resourceId ?? '',
+      details: details ?? null,
+    });
+    const saved = await this.auditRepo.save(entry);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[audit]', { action, resource, resourceId, userId });
+    }
+    return saved;
+  }
+
   private async getAccessibleOrgIds(userOrgId: string): Promise<string[]> {
     const children = await this.orgRepo.find({
       where: { parentId: userOrgId },
@@ -32,7 +58,7 @@ export class AuditService {
       where: { organizationId: In(orgIds) },
       relations: ['user'],
       order: { timestamp: 'DESC' },
-      take: 500,
+      take: 100,
     });
   }
 }

@@ -1,10 +1,11 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from '@org/data';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
+import { AuditService } from '../audit/audit.service';
 import { Organization, User } from '../entities';
 import { SignupDto } from './dto/signup.dto';
 
@@ -17,6 +18,7 @@ export class AuthService {
     private orgRepo: Repository<Organization>,
     private jwt: JwtService,
     private config: ConfigService,
+    private audit: AuditService,
   ) {}
 
   async findById(id: string): Promise<User | null> {
@@ -49,6 +51,15 @@ export class AuthService {
     });
     const saved = await this.userRepo.save(user);
 
+    await this.audit.log(
+      saved.id,
+      saved.organizationId,
+      'user:signup',
+      'user',
+      saved.id,
+      { email: saved.email },
+    );
+
     const token = await this.login(saved);
     return {
       access_token: token.access_token,
@@ -69,6 +80,15 @@ export class AuthService {
   }
 
   async login(user: User): Promise<{ access_token: string }> {
+    await this.audit.log(
+      user.id,
+      user.organizationId,
+      'user:login',
+      'user',
+      user.id,
+      { email: user.email },
+    );
+
     const payload = {
       sub: user.id,
       email: user.email,

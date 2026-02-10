@@ -7,6 +7,7 @@ import { canAccessTaskOrg, getAccessibleOrgIds } from '@org/auth';
 import { CreateTaskDto, UpdateTaskDto } from '@org/data';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
+import { AuditService } from '../audit/audit.service';
 import { Organization, Task, TaskCategory } from '../entities';
 
 export interface RequestUser {
@@ -23,6 +24,7 @@ export class TasksService {
     private taskRepo: Repository<Task>,
     @InjectRepository(Organization)
     private orgRepo: Repository<Organization>,
+    private audit: AuditService,
   ) {}
 
   private async getAccessibleOrgIds(userOrgId: string): Promise<string[]> {
@@ -66,7 +68,16 @@ export class TasksService {
       organizationId: user.organizationId,
       createdById: user.id,
     });
-    return this.taskRepo.save(task);
+    const saved = await this.taskRepo.save(task);
+    await this.audit.log(
+      user.id,
+      user.organizationId,
+      'task:create',
+      'task',
+      saved.id,
+      { title: saved.title },
+    );
+    return saved;
   }
 
   async update(
@@ -78,11 +89,28 @@ export class TasksService {
     if (dto.title !== undefined) task.title = dto.title;
     if (dto.description !== undefined) task.description = dto.description;
     if (dto.status !== undefined) task.status = dto.status as Task['status'];
-    return this.taskRepo.save(task);
+    const saved = await this.taskRepo.save(task);
+    await this.audit.log(
+      user.id,
+      user.organizationId,
+      'task:update',
+      'task',
+      saved.id,
+      { title: saved.title, status: saved.status },
+    );
+    return saved;
   }
 
   async remove(id: string, user: RequestUser): Promise<void> {
     const task = await this.findOne(id, user);
+    await this.audit.log(
+      user.id,
+      user.organizationId,
+      'task:delete',
+      'task',
+      task.id,
+      { title: task.title },
+    );
     await this.taskRepo.remove(task);
   }
 }
