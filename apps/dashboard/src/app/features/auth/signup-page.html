@@ -64,7 +64,11 @@
         </select>
       </div>
 
-      <button class="btn btn-primary" type="submit" [disabled]="isSubmitting()">
+      <button
+        class="w-full rounded-md bg-brand py-2 text-white font-semibold transition hover:bg-brand-dark disabled:opacity-60"
+        type="submit"
+        [disabled]="isSubmitting()"
+      >
         @if (isSubmitting()) {
           Creating…
         } @else {
@@ -75,7 +79,7 @@
 
     <p class="mt-3 mb-0">
       Already have an account?
-      <a class="Link--primary" routerLink="/login">Sign in</a>
+      <a class="font-semibold text-brand hover:text-brand-dark" routerLink="/login">Sign in</a>
     </p>
   </div>
 </div>

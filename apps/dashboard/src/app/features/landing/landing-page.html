@@ -15,19 +15,11 @@
 
     <div class="mt-8">
       @if (isAuthenticated()) {
-        <a
-          class="inline-block px-8 py-3 rounded-full text-white font-semibold text-base shadow-lg transition hover:shadow-xl"
-          style="background-color: #e5534b"
-          routerLink="/tasks"
-        >
+        <a class="btn-brand-lg" routerLink="/tasks">
           Go to Dashboard
         </a>
       } @else {
-        <a
-          class="inline-block px-8 py-3 rounded-full text-white font-semibold text-base shadow-lg transition hover:shadow-xl"
-          style="background-color: #e5534b"
-          routerLink="/login/signup"
-        >
+        <a class="btn-brand-lg" routerLink="/login/signup">
           Get Started for Free
         </a>
       }

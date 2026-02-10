@@ -3,4 +3,39 @@
 @tailwind components;
 @tailwind utilities;
 
-/* You can add global styles to this file, and also import other style files */
+/* ── Ensure form inputs have visible borders (Tailwind base reset strips them) ── */
+.form-control,
+.form-select {
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 14px;
+  line-height: 20px;
+  background-color: #fff;
+  transition: border-color 0.15s ease-in-out;
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: theme('colors.brand.DEFAULT');
+  outline: none;
+  box-shadow: 0 0 0 3px theme('colors.brand.DEFAULT' / 15%);
+}
+
+/* ── Brand CTA button (reusable) ── */
+@layer components {
+  .btn-brand {
+    @apply inline-block rounded-full bg-brand text-white font-semibold no-underline transition;
+  }
+  .btn-brand:hover {
+    @apply bg-brand-dark shadow-md;
+  }
+  .btn-brand-sm {
+    @apply btn-brand px-4 py-1.5 text-sm;
+  }
+  .btn-brand-lg {
+    @apply btn-brand px-8 py-3 text-base shadow-lg;
+  }
+  .btn-brand-lg:hover {
+    @apply shadow-xl;
+  }
+}

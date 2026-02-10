@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Role } from '@org/data';
 import { AuthService, type SignupRequest } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-signup-page',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterModule],
   templateUrl: './signup-page.html',
   styleUrl: './signup-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
