@@ -1,0 +1,14 @@
+<header class="border-b borderColor-muted px-4 py-3">
+  <div class="container-lg d-flex flex-items-center flex-justify-between">
+    <a class="h4 text-bold" routerLink="/tasks">Task Dashboard</a>
+
+    <nav class="d-flex flex-items-center gap-2">
+      @if (isAuthenticated()) {
+        <button class="btn btn-sm" type="button" (click)="logout()">Logout</button>
+      } @else {
+        <a class="btn btn-sm" routerLink="/login">Login</a>
+        <a class="btn btn-sm btn-primary" routerLink="/login/signup">Sign up</a>
+      }
+    </nav>
+  </div>
+</header>
