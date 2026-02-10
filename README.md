@@ -22,7 +22,6 @@
 The project is organized as an **Nx monorepo** (v22.4) using npm workspaces. This structure enables:
 
 - **Shared code** between frontend and backend without publishing packages.
-- **Affected-based CI** — only test/build what has changed.
 - **Consistent tooling** — ESLint, Prettier, Vitest, and Playwright configured once.
 - **Dependency graph** — Nx tracks project relationships automatically.
 
