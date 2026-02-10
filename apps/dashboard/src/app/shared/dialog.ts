@@ -23,24 +23,23 @@ import {
     @if (open) {
       <!-- Backdrop -->
       <div
-        class="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm d-flex flex-items-center flex-justify-center p-4"
+        class="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm d-flex flex-items-center flex-justify-center p-2 sm:p-4"
         (click)="onBackdropClick($event)"
         (keydown.escape)="closed.emit()"
       >
         <!-- Panel -->
         <div
-          class="bg-white rounded-xl shadow-2xl w-full overflow-hidden animate-in"
-          style="max-width: 540px"
+          class="dialog-panel bg-white shadow-2xl w-full overflow-hidden animate-in rounded-xl max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)] d-flex flex-column"
           role="dialog"
           aria-modal="true"
         >
           <!-- Header -->
-          <div class="d-flex flex-items-center flex-justify-between px-5 py-4 border-b border-gray-100">
-            <h2 class="text-base font-bold text-gray-900 m-0">
+          <div class="d-flex flex-items-center flex-justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-gray-100 flex-shrink-0">
+            <h2 class="text-sm sm:text-base font-bold text-gray-900 m-0">
               <ng-content select="[dialog-title]"></ng-content>
             </h2>
             <button
-              class="rounded-md p-1 text-gray-400 transition hover:text-gray-600 hover:bg-gray-100"
+              class="rounded-md p-1.5 text-gray-400 transition hover:text-gray-600 hover:bg-gray-100 -mr-1"
               type="button"
               (click)="closed.emit()"
               aria-label="Close"
@@ -52,13 +51,13 @@ import {
             </button>
           </div>
 
-          <!-- Body -->
-          <div class="px-5 py-4">
+          <!-- Body (scrollable) -->
+          <div class="px-4 sm:px-5 py-3 sm:py-4 overflow-y-auto flex-1">
             <ng-content select="[dialog-body]"></ng-content>
           </div>
 
           <!-- Footer -->
-          <div class="px-5 py-3 border-t border-gray-100 bg-gray-50/50 d-flex flex-items-center flex-justify-end gap-2">
+          <div class="px-4 sm:px-5 py-3 border-t border-gray-100 bg-gray-50/50 d-flex flex-items-center flex-justify-end gap-2 flex-shrink-0">
             <ng-content select="[dialog-footer]"></ng-content>
           </div>
         </div>
@@ -67,6 +66,9 @@ import {
   `,
   styles: [
     `
+      .dialog-panel {
+        max-width: 540px;
+      }
       .animate-in {
         animation: dialogIn 0.15s ease-out;
       }
@@ -78,6 +80,13 @@ import {
         to {
           opacity: 1;
           transform: scale(1) translateY(0);
+        }
+      }
+      /* On very small screens, make dialog nearly full-width */
+      @media (max-width: 480px) {
+        .dialog-panel {
+          max-width: 100%;
+          border-radius: 0.75rem;
         }
       }
     `,

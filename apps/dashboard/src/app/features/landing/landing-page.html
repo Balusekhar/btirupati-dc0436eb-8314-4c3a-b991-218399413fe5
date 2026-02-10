@@ -1,19 +1,19 @@
-<div class="relative min-h-[calc(100vh-57px)] flex flex-col">
+<div class="relative min-h-[calc(100dvh-57px)] flex flex-col">
   <div class="absolute inset-0 -z-10 h-full w-full bg-white bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:6rem_4rem]"></div>
 
-  <section class="flex-1 flex flex-col items-center justify-center text-center px-4 py-16 md:py-24">
-    <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight max-w-3xl">
+  <section class="flex-1 flex flex-col items-center justify-center text-center px-4 sm:px-6 py-12 sm:py-16 md:py-24">
+    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight max-w-3xl">
       Effortless organization, powerful results.
       Supercharge your workflow!
     </h1>
 
-    <p class="mt-6 text-base md:text-lg max-w-xl text-gray-500 leading-relaxed">
+    <p class="mt-4 sm:mt-6 text-sm sm:text-base md:text-lg max-w-xl text-gray-500 leading-relaxed px-2">
       The ultimate task management platform to help you and your team stay
       organized, focused, and achieve goals faster. From simple to-do lists to
       complex project roadmaps, TaskFlow has you covered.
     </p>
 
-    <div class="mt-8">
+    <div class="mt-6 sm:mt-8">
       @if (isAuthenticated()) {
         <a class="btn-brand-lg" routerLink="/tasks">
           Go to Dashboard
@@ -27,12 +27,12 @@
   </section>
 
   <section class="w-full border-t border-gray-200 bg-white/80 backdrop-blur">
-    <div class="max-w-5xl mx-auto px-4 py-10 md:py-14">
-      <h2 class="text-center text-xl md:text-2xl font-bold mb-8">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10 md:py-14">
+      <h2 class="text-center text-lg sm:text-xl md:text-2xl font-bold mb-6 sm:mb-8">
         Everything you need to manage tasks
       </h2>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <div class="Box p-4">
           <h3 class="h4 mb-1">Secure Auth</h3>
           <p class="color-fg-muted text-small m-0">
@@ -46,15 +46,15 @@
           </p>
         </div>
         <div class="Box p-4">
-          <h3 class="h4 mb-1">Drag & Drop Board</h3>
+          <h3 class="h4 mb-1">Organizations</h3>
           <p class="color-fg-muted text-small m-0">
-            Switch to board view and drag tasks between status columns.
+            Two-level org hierarchy with scoped access to tasks and audit logs.
           </p>
         </div>
         <div class="Box p-4">
-          <h3 class="h4 mb-1">Responsive</h3>
+          <h3 class="h4 mb-1">Fully Responsive</h3>
           <p class="color-fg-muted text-small m-0">
-            Works on mobile, tablet, and desktop. Touch-friendly drag-and-drop.
+            Optimized for mobile, tablet, and desktop. Works great on any screen size.
           </p>
         </div>
         <div class="Box p-4">

@@ -1,5 +1,5 @@
-<div class="max-w-7xl mx-auto px-4 py-10 d-flex flex-justify-center">
-  <div class="Box p-4" style="max-width: 420px; width: 100%">
+<div class="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-10 d-flex flex-justify-center">
+  <div class="Box p-3 sm:p-4 w-full" style="max-width: 420px">
     <h1 class="h3 mb-3">Sign in</h1>
 
     @if (errorMessage()) {
@@ -16,6 +16,7 @@
           class="form-control input-block"
           type="email"
           autocomplete="email"
+          inputmode="email"
           placeholder="you@example.com"
           formControlName="email"
           [class.border-red-500]="form.controls.email.touched && form.controls.email.invalid"
